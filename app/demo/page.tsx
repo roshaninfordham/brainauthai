@@ -3,17 +3,17 @@
 import {
   Activity,
   AlertTriangle,
+  ArrowLeft,
   Brain,
   CheckCircle2,
   ChevronRight,
   CircleDot,
   ClipboardList,
-  Clock,
   Download,
+  Database,
   FileCheck2,
   FileJson,
   FileText,
-  Gauge,
   HeartPulse,
   Layers3,
   Play,
@@ -26,12 +26,20 @@ import {
   Workflow,
   Zap
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { AuditTrail } from "../../components/product/AuditTrail";
+import { CriteriaMatrix } from "../../components/product/CriteriaMatrix";
+import { EvidenceMap } from "../../components/product/EvidenceMap";
+import { FhirJsonPanel } from "../../components/product/FhirJsonPanel";
+import { HumanReviewBanner } from "../../components/product/HumanReviewBanner";
+import { ObservabilityPanel } from "../../components/product/ObservabilityPanel";
+import { PacketPreview } from "../../components/product/PacketPreview";
 import { impactMetrics } from "../../lib/sample-case";
 import type { AgentRun, AnalysisResult, CriteriaMatch, DocumentationGap } from "../../lib/types";
 
 type RunStatus = "idle" | "running" | "complete" | "error";
-type OutputView = "packet" | "criteria" | "fhir" | "audit";
+type OutputView = "evidence" | "criteria" | "packet" | "audit" | "fhir";
 
 interface TimelineEvent {
   agentId: string;
@@ -103,7 +111,6 @@ export default function Home() {
 
   const visibleEvents = events.slice(0, visibleCount);
   const activeEvent = status === "running" ? events[Math.min(visibleCount, events.length - 1)] : null;
-  const runtime = analysis ? agentRuntime(analysis.agents) : null;
   const criticalGaps = analysis?.gaps.filter((gap) => gap.severity === "critical").length ?? 0;
 
   useEffect(() => {
@@ -217,9 +224,15 @@ export default function Home() {
           </div>
         </div>
         <div className="topActions">
+          <Link className="navButton" href="/">
+            <ArrowLeft size={15} aria-hidden="true" />
+            Landing
+          </Link>
           <span className="azureBadge">
             <RadioTower size={15} aria-hidden="true" />
-            Azure AI Document Intelligence
+            {analysis?.mode === "azure-document-intelligence"
+              ? "Azure Document Intelligence Connected"
+              : "Local parser demo mode"}
           </span>
           <span className="caveatBadge">
             <ShieldCheck size={15} aria-hidden="true" />
@@ -301,7 +314,7 @@ export default function Home() {
           <div className="missionHeader">
             <div>
               <p className="eyebrow">AI Mission Control</p>
-              <h2>Clinician-review stroke packet in one run</h2>
+              <h2>Clinician-review stroke packet draft in one agentic run</h2>
             </div>
             <div className="missionControls">
               <button
@@ -365,7 +378,7 @@ export default function Home() {
             {status === "idle" && (
               <div className="emptyRun">
                 <Workflow size={28} aria-hidden="true" />
-                <h3>Six clinical agents standing by</h3>
+                <h3>Seven clinical agents standing by</h3>
                 <p>Extract facts, map criteria, check evidence, flag gaps, and prepare a review draft.</p>
               </div>
             )}
@@ -399,10 +412,11 @@ export default function Home() {
             <div className="outputPanel">
               <div className="tabBar" role="tablist" aria-label="Generated packet views">
                 {[
-                  ["packet", "Packet", FileCheck2],
-                  ["criteria", "Criteria", ClipboardList],
-                  ["fhir", "FHIR JSON", FileJson],
-                  ["audit", "Audit", ShieldCheck]
+                  ["evidence", "Evidence", Database],
+                  ["criteria", "Criteria Matrix", ClipboardList],
+                  ["packet", "Packet Preview", FileCheck2],
+                  ["audit", "Audit Trail", ShieldCheck],
+                  ["fhir", "FHIR JSON", FileJson]
                 ].map(([id, label, Icon]) => (
                   <button
                     key={id as string}
@@ -418,18 +432,14 @@ export default function Home() {
                 ))}
               </div>
 
+              {outputView === "evidence" && <EvidenceMap analysis={analysis} />}
+
+              {outputView === "criteria" && <CriteriaMatrix analysis={analysis} />}
+
               {outputView === "packet" && (
                 <div className="packetView">
-                  <div className="readinessBlock">
-                    <div className="readinessDial" style={{ "--score": analysis.packet.readinessScore } as React.CSSProperties}>
-                      <strong>{analysis.packet.readinessScore}%</strong>
-                      <span>Review</span>
-                    </div>
-                    <div>
-                      <h3>{analysis.packet.disposition}</h3>
-                      <p>{analysis.packet.medicalNecessityLetter.split("\n\n")[2]}</p>
-                    </div>
-                  </div>
+                  <HumanReviewBanner />
+                  <PacketPreview analysis={analysis} />
 
                   <div className="actionRow">
                     <button type="button" onClick={downloadPdfPacket} disabled={isDownloading}>
@@ -448,41 +458,9 @@ export default function Home() {
                 </div>
               )}
 
-              {outputView === "criteria" && (
-                <div className="criteriaList">
-                  {analysis.criteria.map((item) => (
-                    <div className="criteriaRow" key={item.criterion}>
-                      <span className={criteriaClass(item.status)}>{item.status}</span>
-                      <div>
-                        <strong>{item.criterion}</strong>
-                        <p>{item.evidence}</p>
-                      </div>
-                      <small>{confidenceLabel(item.confidence)}</small>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {outputView === "audit" && <AuditTrail analysis={analysis} />}
 
-              {outputView === "fhir" && (
-                <pre className="jsonBlock">{JSON.stringify(analysis.packet.fhirPacket, null, 2)}</pre>
-              )}
-
-              {outputView === "audit" && (
-                <div className="auditList">
-                  {analysis.audit.map((event) => (
-                    <div className="auditRow" key={`${event.at}-${event.agent}`}>
-                      <Clock size={15} aria-hidden="true" />
-                      <div>
-                        <strong>{event.agent}</strong>
-                        <span>
-                          {event.action}: {event.result}
-                        </span>
-                      </div>
-                      <small>{confidenceLabel(event.confidence)}</small>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {outputView === "fhir" && <FhirJsonPanel analysis={analysis} />}
             </div>
           )}
         </section>
@@ -570,28 +548,7 @@ export default function Home() {
             )}
           </div>
 
-          <div className="observabilityGrid">
-            <div>
-              <Gauge size={16} aria-hidden="true" />
-              <span>Runtime</span>
-              <strong>{runtime ? `${runtime.runtime.toFixed(1)}s` : "0.0s"}</strong>
-            </div>
-            <div>
-              <ClipboardList size={16} aria-hidden="true" />
-              <span>Tokens</span>
-              <strong>{runtime ? runtime.tokens.toLocaleString() : "0"}</strong>
-            </div>
-            <div>
-              <Sparkles size={16} aria-hidden="true" />
-              <span>Cost</span>
-              <strong>{runtime ? `$${runtime.cost.toFixed(3)}` : "$0.000"}</strong>
-            </div>
-            <div>
-              <ShieldCheck size={16} aria-hidden="true" />
-              <span>Confidence</span>
-              <strong>{runtime ? confidenceLabel(runtime.confidence) : "0%"}</strong>
-            </div>
-          </div>
+          <ObservabilityPanel analysis={analysis} />
         </aside>
       </section>
     </main>
