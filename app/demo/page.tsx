@@ -27,8 +27,8 @@ import {
   Zap
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { impactMetrics } from "../lib/sample-case";
-import type { AgentRun, AnalysisResult, CriteriaMatch, DocumentationGap } from "../lib/types";
+import { impactMetrics } from "../../lib/sample-case";
+import type { AgentRun, AnalysisResult, CriteriaMatch, DocumentationGap } from "../../lib/types";
 
 type RunStatus = "idle" | "running" | "complete" | "error";
 type OutputView = "packet" | "criteria" | "fhir" | "audit";
