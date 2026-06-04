@@ -1121,6 +1121,9 @@ h3 {
 
 .navButton,
 .secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   min-height: 40px;
   padding: 0 14px;
   border: 1px solid var(--border);
@@ -1456,6 +1459,278 @@ h3 {
   font-weight: 800;
 }
 
+.reviewBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid rgba(5, 150, 105, 0.22);
+  border-radius: 8px;
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.reviewBanner svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.reviewBanner strong,
+.reviewBanner span {
+  display: block;
+}
+
+.reviewBanner span {
+  margin-top: 4px;
+  color: #047857;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.evidenceMap,
+.criteriaMatrix,
+.packetPreview {
+  padding: 14px;
+}
+
+.factGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.factCard,
+.evidenceQuote,
+.criteriaMatrixRow,
+.packetPreview section {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.factCard {
+  padding: 12px;
+}
+
+.factCard > span,
+.factCard > small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.factCard > strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 18px;
+}
+
+.factCard > small {
+  margin-top: 6px;
+}
+
+.factSources,
+.criteriaSources {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.evidenceQuote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px;
+  background: var(--surface-muted);
+}
+
+.evidenceQuote svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--primary);
+}
+
+.evidenceQuote strong,
+.evidenceQuote p,
+.evidenceQuote span {
+  display: block;
+}
+
+.evidenceQuote strong {
+  font-size: 12px;
+}
+
+.evidenceQuote p {
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.evidenceQuote span {
+  margin-top: 5px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.criteriaMatrix {
+  display: grid;
+  gap: 10px;
+}
+
+.criteriaMatrixRow {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) 96px;
+  gap: 12px;
+  padding: 12px;
+}
+
+.criteriaMatrixRow.missing {
+  border-color: rgba(220, 38, 38, 0.24);
+}
+
+.criteriaMatrixRow.review {
+  border-color: rgba(217, 119, 6, 0.24);
+}
+
+.criteriaMatrixStatus {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.criteriaMatrixRow.missing .criteriaMatrixStatus {
+  color: var(--danger);
+}
+
+.criteriaMatrixRow.review .criteriaMatrixStatus {
+  color: var(--warning);
+}
+
+.criteriaMatrixRow p {
+  margin-top: 5px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.criteriaConfidence strong,
+.criteriaConfidence span {
+  display: block;
+  text-align: right;
+}
+
+.criteriaConfidence strong {
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.criteriaConfidence span {
+  margin-top: 5px;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.packetPreview {
+  display: grid;
+  gap: 10px;
+}
+
+.packetHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.packetHeader span,
+.packetHeader h3 {
+  display: block;
+}
+
+.packetHeader > div > span {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.packetHeader h3 {
+  margin-top: 5px;
+  font-size: 18px;
+}
+
+.packetPreview section {
+  padding: 12px;
+}
+
+.packetPreview h4 {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.packetPreview p {
+  white-space: pre-line;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.packetGap {
+  display: flex;
+  gap: 8px;
+  color: var(--warning);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.packetGap svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.packetSafetyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.packetSafetyGrid div {
+  min-height: 82px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.packetSafetyGrid svg {
+  color: var(--success);
+}
+
+.packetSafetyGrid span,
+.packetSafetyGrid strong {
+  display: block;
+}
+
+.packetSafetyGrid span {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.packetSafetyGrid strong {
+  margin-top: 5px;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 980px) {
   .landingHero,
   .landingSection,
@@ -1496,7 +1771,18 @@ h3 {
   .heroTimeGrid,
   .workflowCompare,
   .agentArchitecture,
-  .landingMetrics {
+  .landingMetrics,
+  .factGrid,
+  .packetSafetyGrid {
     grid-template-columns: 1fr;
+  }
+
+  .criteriaMatrixRow {
+    grid-template-columns: 1fr;
+  }
+
+  .criteriaConfidence strong,
+  .criteriaConfidence span {
+    text-align: left;
   }
 }
