@@ -301,7 +301,7 @@ export default function Home() {
           <div className="missionHeader">
             <div>
               <p className="eyebrow">AI Mission Control</p>
-              <h2>Approval-ready stroke packet in one run</h2>
+              <h2>Clinician-review stroke packet in one run</h2>
             </div>
             <div className="missionControls">
               <button
@@ -349,7 +349,7 @@ export default function Home() {
             <div className="chatMessage system">
               <Sparkles size={18} aria-hidden="true" />
               <p>
-                BrainAuth AI prepares documentation and authorization-ready evidence around acute
+                BrainAuth AI prepares source-grounded documentation evidence around acute
                 stroke care. It does not delay emergency screening or stabilization.
               </p>
             </div>
@@ -366,7 +366,7 @@ export default function Home() {
               <div className="emptyRun">
                 <Workflow size={28} aria-hidden="true" />
                 <h3>Six clinical agents standing by</h3>
-                <p>Research, plan, act, verify, and report for each packet section.</p>
+                <p>Extract facts, map criteria, check evidence, flag gaps, and prepare a review draft.</p>
               </div>
             )}
 
@@ -423,7 +423,7 @@ export default function Home() {
                   <div className="readinessBlock">
                     <div className="readinessDial" style={{ "--score": analysis.packet.readinessScore } as React.CSSProperties}>
                       <strong>{analysis.packet.readinessScore}%</strong>
-                      <span>Ready</span>
+                      <span>Review</span>
                     </div>
                     <div>
                       <h3>{analysis.packet.disposition}</h3>
@@ -540,7 +540,7 @@ export default function Home() {
             {!analysis && (
               <div className="agentPlaceholder">
                 <Stethoscope size={20} aria-hidden="true" />
-                <span>Run the packet to stream agent decisions.</span>
+                <span>Run the packet to stream source-grounded audit events.</span>
               </div>
             )}
           </div>

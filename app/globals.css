@@ -1,20 +1,25 @@
 :root {
-  --bg: #0b1020;
-  --bg-2: #101522;
-  --panel: #151a27;
-  --panel-2: #111827;
-  --line: #2a3347;
-  --line-soft: rgba(148, 163, 184, 0.2);
-  --text: #f8fafc;
-  --muted: #9ca3af;
-  --muted-2: #cbd5e1;
-  --purple: #7c3aed;
-  --teal: #14b8a6;
-  --green: #10b981;
-  --amber: #f59e0b;
-  --red: #ef4444;
-  --blue: #38bdf8;
-  --shadow: rgba(0, 0, 0, 0.35);
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --surface-muted: #f1f5f9;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --primary: #2563eb;
+  --primary-soft: #dbeafe;
+  --agent-purple: #7c3aed;
+  --agent-purple-soft: #ede9fe;
+  --success: #059669;
+  --success-soft: #d1fae5;
+  --warning: #d97706;
+  --warning-soft: #fef3c7;
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
+  --code-bg: #0f172a;
+  --shadow: 0 14px 38px rgba(15, 23, 42, 0.08);
+  --shadow-soft: 0 6px 18px rgba(15, 23, 42, 0.05);
 }
 
 * {
@@ -23,22 +28,55 @@
 
 html {
   min-width: 320px;
-  background: var(--bg);
+  background: var(--background);
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  color: var(--text);
+  color: var(--text-primary);
   background:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    var(--bg);
-  background-size: 32px 32px;
+    radial-gradient(circle at 18% -10%, rgba(37, 99, 235, 0.08), transparent 32%),
+    radial-gradient(circle at 92% 0%, rgba(124, 58, 237, 0.08), transparent 28%),
+    var(--background);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-button {
+button,
+input,
+textarea {
   font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.02;
+}
+
+h2 {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: 16px;
+  line-height: 1.3;
 }
 
 .appShell {
@@ -46,13 +84,20 @@ button {
   padding: 18px;
 }
 
+.topBar,
+.metricsBand,
+.commandGrid {
+  max-width: 1720px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
 .topBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin: 0 auto 16px;
-  max-width: 1720px;
+  margin-bottom: 16px;
 }
 
 .brandBlock,
@@ -87,42 +132,20 @@ button {
   width: 46px;
   height: 46px;
   place-items: center;
-  border: 1px solid rgba(20, 184, 166, 0.45);
+  border: 1px solid rgba(37, 99, 235, 0.22);
   border-radius: 8px;
-  color: var(--teal);
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(124, 58, 237, 0.15));
-  box-shadow: 0 12px 40px var(--shadow);
+  color: var(--primary);
+  background: linear-gradient(135deg, #ffffff, var(--primary-soft));
+  box-shadow: var(--shadow-soft);
 }
 
 .eyebrow {
-  margin: 0 0 3px;
-  color: var(--teal);
+  margin: 0 0 4px;
+  color: var(--primary);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0;
   text-transform: uppercase;
-}
-
-h1,
-h2,
-h3,
-p {
-  margin: 0;
-}
-
-h1 {
-  font-size: 29px;
-  line-height: 1;
-}
-
-h2 {
-  font-size: 18px;
-  line-height: 1.15;
-}
-
-h3 {
-  font-size: 16px;
-  line-height: 1.3;
 }
 
 .topActions {
@@ -137,33 +160,56 @@ h3 {
   gap: 7px;
   min-height: 32px;
   padding: 0 10px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  color: var(--muted-2);
-  background: rgba(17, 24, 39, 0.75);
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.82);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 750;
+  box-shadow: var(--shadow-soft);
 }
 
-.caveatBadge {
-  color: #bbf7d0;
-  border-color: rgba(16, 185, 129, 0.35);
+.caveatBadge,
+.statusPill.done {
+  color: var(--success);
+  border-color: rgba(5, 150, 105, 0.22);
+  background: var(--success-soft);
+}
+
+.statusPill.critical {
+  color: var(--danger);
+  border-color: rgba(220, 38, 38, 0.22);
+  background: var(--danger-soft);
 }
 
 .metricsBand {
   display: grid;
   grid-template-columns: repeat(10, minmax(112px, 1fr));
   gap: 8px;
-  max-width: 1720px;
-  margin: 0 auto 16px;
+  margin-bottom: 16px;
+}
+
+.metricCard,
+.panel,
+.patientStats div,
+.observabilityGrid div,
+.chatSurface,
+.outputPanel,
+.eventLine,
+.criteriaRow,
+.auditRow,
+.agentCard,
+.agentPlaceholder,
+.scanFrame {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
 }
 
 .metricCard {
   min-height: 92px;
-  padding: 11px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(17, 24, 39, 0.86);
+  padding: 12px;
 }
 
 .metricCard span,
@@ -175,8 +221,11 @@ h3 {
 .documentRow span,
 .agentCard span,
 .mutedCopy,
-.auditRow span {
-  color: var(--muted);
+.auditRow span,
+.criteriaRow p,
+.gapRow p,
+.gapRow small {
+  color: var(--text-muted);
 }
 
 .metricCard span {
@@ -186,10 +235,20 @@ h3 {
   line-height: 1.25;
 }
 
+.metricCard strong,
+.patientStats strong,
+.observabilityGrid strong,
+.timeSavedHero strong,
+.neuronsCounter strong,
+.eventLine small,
+.criteriaRow small,
+.auditRow small {
+  font-variant-numeric: tabular-nums;
+}
+
 .metricCard strong {
   display: block;
   margin-top: 5px;
-  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 23px;
   line-height: 1;
 }
@@ -204,15 +263,11 @@ h3 {
   display: grid;
   grid-template-columns: minmax(260px, 330px) minmax(520px, 1fr) minmax(300px, 390px);
   gap: 16px;
-  max-width: 1720px;
-  margin: 0 auto;
 }
 
 .panel {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(21, 26, 39, 0.94);
-  box-shadow: 0 20px 70px var(--shadow);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow);
 }
 
 .leftPanel,
@@ -240,16 +295,6 @@ h3 {
   flex-shrink: 0;
 }
 
-.statusPill.critical {
-  color: #fecaca;
-  border-color: rgba(239, 68, 68, 0.38);
-}
-
-.statusPill.done {
-  color: #bbf7d0;
-  border-color: rgba(16, 185, 129, 0.38);
-}
-
 .patientStats {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -261,13 +306,13 @@ h3 {
 .observabilityGrid div {
   min-height: 74px;
   padding: 12px;
-  border: 1px solid var(--line-soft);
-  border-radius: 8px;
-  background: var(--panel-2);
+  background: var(--surface);
 }
 
 .patientStats span,
-.patientStats strong {
+.patientStats strong,
+.observabilityGrid span,
+.observabilityGrid strong {
   display: block;
 }
 
@@ -277,7 +322,6 @@ h3 {
 
 .patientStats strong {
   margin-top: 7px;
-  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 18px;
   line-height: 1.05;
 }
@@ -286,9 +330,7 @@ h3 {
   width: 100%;
   overflow: hidden;
   margin-bottom: 16px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #070b15;
+  background: #f8fafc;
 }
 
 .scanFrame img {
@@ -301,7 +343,7 @@ h3 {
 .sectionTitle {
   gap: 7px;
   margin-bottom: 10px;
-  color: var(--muted-2);
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 800;
 }
@@ -314,7 +356,7 @@ h3 {
 .documentRow {
   gap: 10px;
   min-height: 58px;
-  border-top: 1px solid var(--line-soft);
+  border-top: 1px solid var(--border);
 }
 
 .documentRow > div {
@@ -325,9 +367,6 @@ h3 {
 .documentRow strong,
 .documentRow span {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .documentRow strong {
@@ -337,18 +376,19 @@ h3 {
 .documentRow span {
   margin-top: 3px;
   font-size: 11px;
+  line-height: 1.3;
 }
 
 .documentRow small {
   flex-shrink: 0;
-  color: var(--amber);
+  color: var(--warning);
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
 }
 
 .documentRow small.parsed {
-  color: var(--green);
+  color: var(--success);
 }
 
 .missionHeader {
@@ -367,10 +407,10 @@ h3 {
 .resolveButton,
 .tabBar button {
   min-height: 38px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  color: var(--text);
-  background: #121827;
+  color: var(--text-primary);
+  background: var(--surface);
   cursor: pointer;
 }
 
@@ -378,15 +418,17 @@ h3 {
   justify-content: center;
   width: 40px;
   padding: 0;
-  color: var(--muted-2);
+  color: var(--text-secondary);
 }
 
 .primaryButton {
   gap: 8px;
   padding: 0 14px;
-  border-color: rgba(124, 58, 237, 0.55);
-  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  border-color: var(--primary);
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--primary), var(--agent-purple));
   font-weight: 800;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.22);
 }
 
 .primaryButton:disabled,
@@ -404,9 +446,9 @@ h3 {
   min-height: 98px;
   margin-bottom: 14px;
   padding: 14px;
-  border: 1px solid rgba(20, 184, 166, 0.3);
+  border: 1px solid rgba(37, 99, 235, 0.16);
   border-radius: 8px;
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.12), rgba(56, 189, 248, 0.07));
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
 }
 
 .timeSavedHero div {
@@ -418,46 +460,42 @@ h3 {
   display: block;
   margin-bottom: 7px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 750;
 }
 
 .timeSavedHero strong,
 .neuronsCounter strong {
   display: block;
-  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 32px;
   line-height: 1;
 }
 
 .neuronsCounter {
   padding-left: 14px;
-  border-left: 1px solid rgba(203, 213, 225, 0.2);
+  border-left: 1px solid var(--border);
 }
 
 .neuronsCounter strong {
-  color: var(--green);
+  color: var(--success);
 }
 
 .chatSurface {
   min-height: 280px;
   padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #0d1320;
 }
 
 .chatMessage {
   gap: 10px;
   align-items: flex-start;
   margin-bottom: 12px;
-  color: var(--muted-2);
+  color: var(--text-secondary);
   font-size: 13px;
   line-height: 1.45;
 }
 
 .chatMessage svg {
   flex-shrink: 0;
-  color: var(--teal);
+  color: var(--agent-purple);
 }
 
 .uploadStrip {
@@ -466,10 +504,10 @@ h3 {
   min-height: 44px;
   margin-bottom: 12px;
   padding: 0 12px;
-  border: 1px dashed rgba(148, 163, 184, 0.35);
+  border: 1px dashed var(--border-strong);
   border-radius: 8px;
-  color: var(--muted-2);
-  background: rgba(17, 24, 39, 0.75);
+  color: var(--text-secondary);
+  background: var(--surface-muted);
   font-size: 12px;
 }
 
@@ -481,14 +519,12 @@ h3 {
 }
 
 .uploadStrip span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.3;
 }
 
 .uploadStrip small {
   flex-shrink: 0;
-  color: var(--blue);
+  color: var(--primary);
   font-weight: 800;
 }
 
@@ -498,20 +534,20 @@ h3 {
   place-items: center;
   align-content: center;
   gap: 8px;
-  color: var(--muted);
+  color: var(--text-muted);
   text-align: center;
 }
 
 .emptyRun svg {
-  color: var(--purple);
+  color: var(--agent-purple);
 }
 
 .emptyRun h3 {
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .emptyRun p {
-  max-width: 360px;
+  max-width: 420px;
   font-size: 13px;
 }
 
@@ -519,10 +555,10 @@ h3 {
   display: flex;
   gap: 9px;
   padding: 12px;
-  border: 1px solid rgba(239, 68, 68, 0.45);
+  border: 1px solid rgba(220, 38, 38, 0.22);
   border-radius: 8px;
-  color: #fecaca;
-  background: rgba(239, 68, 68, 0.09);
+  color: var(--danger);
+  background: var(--danger-soft);
 }
 
 .eventStream {
@@ -535,9 +571,7 @@ h3 {
   gap: 10px;
   min-height: 58px;
   padding: 10px;
-  border: 1px solid var(--line-soft);
-  border-radius: 8px;
-  background: rgba(21, 26, 39, 0.72);
+  background: var(--surface);
 }
 
 .eventDot {
@@ -545,8 +579,8 @@ h3 {
   height: 10px;
   flex-shrink: 0;
   border-radius: 999px;
-  background: var(--green);
-  box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.1);
+  background: var(--success);
+  box-shadow: 0 0 0 6px rgba(5, 150, 105, 0.1);
 }
 
 .eventLine div:nth-child(2) {
@@ -561,36 +595,32 @@ h3 {
 
 .eventLine span {
   margin-bottom: 3px;
-  color: var(--blue);
+  color: var(--primary);
   font-size: 11px;
   font-weight: 800;
 }
 
 .eventLine strong {
-  color: var(--muted-2);
+  color: var(--text-secondary);
   font-size: 13px;
   line-height: 1.35;
 }
 
 .eventLine small {
   flex-shrink: 0;
-  color: var(--green);
-  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  color: var(--success);
   font-size: 11px;
 }
 
 .outputPanel {
   margin-top: 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #0d1320;
 }
 
 .tabBar {
   display: flex;
   gap: 6px;
   padding: 8px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--border);
 }
 
 .tabBar button {
@@ -598,14 +628,14 @@ h3 {
   align-items: center;
   gap: 7px;
   padding: 0 12px;
-  color: var(--muted);
+  color: var(--text-muted);
   font-weight: 800;
 }
 
 .tabBar button.activeTab {
-  color: var(--text);
-  border-color: rgba(20, 184, 166, 0.45);
-  background: rgba(20, 184, 166, 0.11);
+  color: var(--primary);
+  border-color: rgba(37, 99, 235, 0.25);
+  background: var(--primary-soft);
 }
 
 .packetView,
@@ -630,8 +660,8 @@ h3 {
   align-content: center;
   border-radius: 999px;
   background:
-    radial-gradient(circle at center, #111827 0 55%, transparent 56%),
-    conic-gradient(var(--green) calc(var(--score) * 1%), rgba(148, 163, 184, 0.2) 0);
+    radial-gradient(circle at center, #ffffff 0 55%, transparent 56%),
+    conic-gradient(var(--success) calc(var(--score) * 1%), #e5e7eb 0);
 }
 
 .readinessDial strong,
@@ -640,19 +670,18 @@ h3 {
 }
 
 .readinessDial strong {
-  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 24px;
 }
 
 .readinessDial span {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 800;
 }
 
 .readinessBlock p {
   margin-top: 8px;
-  color: var(--muted-2);
+  color: var(--text-secondary);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -668,7 +697,7 @@ h3 {
   align-items: center;
   gap: 7px;
   padding: 0 12px;
-  color: var(--muted-2);
+  color: var(--text-secondary);
   font-weight: 800;
 }
 
@@ -681,14 +710,11 @@ h3 {
 .criteriaRow,
 .auditRow {
   display: grid;
-  grid-template-columns: 70px minmax(0, 1fr) 42px;
+  grid-template-columns: 76px minmax(0, 1fr) 42px;
   align-items: center;
   gap: 10px;
   min-height: 62px;
-  padding: 9px;
-  border: 1px solid var(--line-soft);
-  border-radius: 8px;
-  background: rgba(17, 24, 39, 0.75);
+  padding: 10px;
 }
 
 .criteriaRow span:first-child,
@@ -702,26 +728,22 @@ h3 {
   text-transform: uppercase;
 }
 
-.criteriaMet {
-  color: #bbf7d0;
-  background: rgba(16, 185, 129, 0.12);
+.criteriaMet,
+.severityLow {
+  color: var(--success);
+  background: var(--success-soft);
 }
 
 .criteriaMissing,
 .severityCritical {
-  color: #fecaca;
-  background: rgba(239, 68, 68, 0.14);
+  color: var(--danger);
+  background: var(--danger-soft);
 }
 
 .criteriaReview,
 .severityModerate {
-  color: #fde68a;
-  background: rgba(245, 158, 11, 0.14);
-}
-
-.severityLow {
-  color: #bae6fd;
-  background: rgba(56, 189, 248, 0.14);
+  color: var(--warning);
+  background: var(--warning-soft);
 }
 
 .criteriaRow strong,
@@ -739,15 +761,13 @@ h3 {
 .criteriaRow p,
 .auditRow span {
   margin-top: 3px;
-  color: var(--muted);
   font-size: 12px;
   line-height: 1.35;
 }
 
 .criteriaRow small,
 .auditRow small {
-  color: var(--green);
-  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  color: var(--success);
   font-size: 11px;
 }
 
@@ -756,8 +776,9 @@ h3 {
   max-height: 470px;
   margin: 0;
   padding: 14px;
+  border-radius: 0 0 8px 8px;
   color: #d1fae5;
-  background: #070b15;
+  background: var(--code-bg);
   font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 12px;
   line-height: 1.55;
@@ -768,7 +789,7 @@ h3 {
 }
 
 .auditRow svg {
-  color: var(--blue);
+  color: var(--primary);
 }
 
 .agentRail {
@@ -782,23 +803,21 @@ h3 {
   gap: 10px;
   min-height: 86px;
   padding: 10px;
-  border: 1px solid var(--line-soft);
-  border-radius: 8px;
-  background: var(--panel-2);
+  background: var(--surface);
 }
 
 .agentCard.active {
-  border-color: rgba(56, 189, 248, 0.45);
-  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(37, 99, 235, 0.35);
+  background: var(--primary-soft);
 }
 
 .agentCard.complete {
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: rgba(5, 150, 105, 0.24);
 }
 
 .agentCard.warning {
-  border-color: rgba(245, 158, 11, 0.45);
-  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(217, 119, 6, 0.35);
+  background: var(--warning-soft);
 }
 
 .agentIcon {
@@ -807,22 +826,22 @@ h3 {
   height: 28px;
   flex-shrink: 0;
   place-items: center;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  color: var(--muted-2);
+  color: var(--text-muted);
 }
 
 .agentCard.active .agentIcon {
-  color: var(--blue);
+  color: var(--primary);
   animation: pulse 1.1s infinite;
 }
 
 .agentCard.complete .agentIcon {
-  color: var(--green);
+  color: var(--success);
 }
 
 .agentCard.warning .agentIcon {
-  color: var(--amber);
+  color: var(--warning);
 }
 
 .agentCard > div:last-child {
@@ -854,17 +873,18 @@ h3 {
 
 .phaseChips small {
   padding: 3px 6px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  color: var(--muted);
+  color: var(--text-muted);
+  background: var(--surface);
   font-size: 9px;
   font-weight: 900;
 }
 
 .phaseChips small.phaseDone {
-  color: #bbf7d0;
-  border-color: rgba(16, 185, 129, 0.35);
-  background: rgba(16, 185, 129, 0.08);
+  color: var(--success);
+  border-color: rgba(5, 150, 105, 0.25);
+  background: var(--success-soft);
 }
 
 .agentPlaceholder {
@@ -873,21 +893,20 @@ h3 {
   place-items: center;
   align-content: center;
   gap: 10px;
-  border: 1px dashed rgba(148, 163, 184, 0.35);
-  border-radius: 8px;
-  color: var(--muted);
+  border-style: dashed;
+  color: var(--text-muted);
   text-align: center;
 }
 
 .agentPlaceholder svg {
-  color: var(--purple);
+  color: var(--agent-purple);
 }
 
 .gapRow {
   display: grid;
   gap: 6px;
   padding: 10px 0;
-  border-top: 1px solid var(--line-soft);
+  border-top: 1px solid var(--border);
 }
 
 .gapRow span {
@@ -899,21 +918,14 @@ h3 {
   font-size: 13px;
 }
 
-.gapRow p,
-.gapRow small {
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.35;
-}
-
 .resolveButton {
   justify-content: center;
   gap: 8px;
   width: 100%;
   margin-top: 8px;
-  color: #fef3c7;
-  border-color: rgba(245, 158, 11, 0.45);
-  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning);
+  border-color: rgba(217, 119, 6, 0.28);
+  background: var(--warning-soft);
   font-weight: 900;
 }
 
@@ -929,12 +941,7 @@ h3 {
 }
 
 .observabilityGrid svg {
-  color: var(--blue);
-}
-
-.observabilityGrid span,
-.observabilityGrid strong {
-  display: block;
+  color: var(--primary);
 }
 
 .observabilityGrid span {
@@ -944,16 +951,15 @@ h3 {
 
 .observabilityGrid strong {
   margin-top: 5px;
-  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 18px;
 }
 
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.24);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.24);
   }
   100% {
-    box-shadow: 0 0 0 10px rgba(56, 189, 248, 0);
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
   }
 }
 
@@ -1018,7 +1024,7 @@ h3 {
   .neuronsCounter {
     padding-top: 12px;
     padding-left: 0;
-    border-top: 1px solid rgba(203, 213, 225, 0.2);
+    border-top: 1px solid var(--border);
     border-left: 0;
   }
 
@@ -1066,9 +1072,5 @@ h3 {
 
   .uploadStrip {
     padding: 10px 12px;
-  }
-
-  .uploadStrip span {
-    white-space: normal;
   }
 }
