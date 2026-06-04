@@ -20,6 +20,9 @@ export function EvidenceMap({ analysis }: { analysis: AnalysisResult }) {
             <span>{fact.label}</span>
             <strong>{fact.value}</strong>
             <small>Confidence {Math.round(fact.confidence * 100)}%</small>
+            <div className="miniBar">
+              <span style={{ width: `${Math.round(fact.confidence * 100)}%` }} />
+            </div>
             <div className="factSources">
               {fact.sources.map((source) => (
                 <EvidenceQuote source={source} key={source.id} />

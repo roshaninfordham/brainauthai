@@ -6,7 +6,7 @@ import {
   ArrowLeft,
   Brain,
   CheckCircle2,
-  ChevronRight,
+  ChevronDown,
   CircleDot,
   ClipboardList,
   Download,
@@ -28,6 +28,7 @@ import {
   Zap
 } from "lucide-react";
 import Link from "next/link";
+import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { AuditTrail } from "../../components/product/AuditTrail";
 import { CriteriaMatrix } from "../../components/product/CriteriaMatrix";
@@ -36,11 +37,10 @@ import { FhirJsonPanel } from "../../components/product/FhirJsonPanel";
 import { HumanReviewBanner } from "../../components/product/HumanReviewBanner";
 import { ObservabilityPanel } from "../../components/product/ObservabilityPanel";
 import { PacketPreview } from "../../components/product/PacketPreview";
-import { impactMetrics } from "../../lib/sample-case";
-import type { AgentRun, AnalysisResult, CriteriaMatch, DocumentationGap } from "../../lib/types";
+import type { AnalysisResult, DocumentationGap } from "../../lib/types";
 
 type RunStatus = "idle" | "running" | "complete" | "error";
-type OutputView = "evidence" | "criteria" | "packet" | "audit" | "fhir";
+type OutputView = "evidence" | "criteria" | "packet";
 type IngestionStatus = "idle" | "running" | "complete" | "error";
 
 interface ParsedPdfFact {
@@ -93,20 +93,63 @@ function severityClass(severity: DocumentationGap["severity"]) {
   return "severityLow";
 }
 
-function criteriaClass(status: CriteriaMatch["status"]) {
-  if (status === "met") return "criteriaMet";
-  if (status === "missing") return "criteriaMissing";
-  return "criteriaReview";
+function percentLabel(value: number) {
+  return `${Math.round(value)}%`;
 }
 
-function agentRuntime(agents: AgentRun[]) {
-  const runtime = agents.reduce((sum, agent) => sum + agent.durationMs, 0) / 1000;
-  const tokens = agents.reduce((sum, agent) => sum + agent.tokens, 0);
-  const cost = agents.reduce((sum, agent) => sum + agent.costUsd, 0);
-  const confidence =
-    agents.reduce((sum, agent) => sum + agent.confidence, 0) / Math.max(agents.length, 1);
+function CollapsiblePanel({
+  title,
+  description,
+  icon,
+  defaultOpen = false,
+  children
+}: {
+  title: string;
+  description?: string;
+  icon: ReactNode;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <details className="collapsiblePanel" open={defaultOpen}>
+      <summary>
+        <span className="collapsibleTitle">
+          {icon}
+          <span>
+            <strong>{title}</strong>
+            {description && <small>{description}</small>}
+          </span>
+        </span>
+        <ChevronDown size={16} aria-hidden="true" />
+      </summary>
+      <div className="collapsibleContent">{children}</div>
+    </details>
+  );
+}
 
-  return { runtime, tokens, cost, confidence };
+function ProgressBar({
+  label,
+  value,
+  caption,
+  tone = "primary"
+}: {
+  label: string;
+  value: number;
+  caption: string;
+  tone?: "primary" | "success" | "warning" | "danger";
+}) {
+  return (
+    <div className="progressMetric">
+      <div>
+        <span>{label}</span>
+        <strong>{percentLabel(value)}</strong>
+      </div>
+      <div className={`barTrack ${tone}`} aria-hidden="true">
+        <span style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+      </div>
+      <small>{caption}</small>
+    </div>
+  );
 }
 
 export default function Home() {
@@ -135,7 +178,33 @@ export default function Home() {
 
   const visibleEvents = events.slice(0, visibleCount);
   const activeEvent = status === "running" ? events[Math.min(visibleCount, events.length - 1)] : null;
+  const readyAnalysis = status === "complete" ? analysis : null;
+  const packetReady = Boolean(readyAnalysis);
   const criticalGaps = analysis?.gaps.filter((gap) => gap.severity === "critical").length ?? 0;
+  const reviewItems = readyAnalysis ? readyAnalysis.metrics.humanReviewItems : 0;
+  const evidenceCoverage = readyAnalysis ? readyAnalysis.metrics.evidenceCoveragePct : 0;
+  const unsupportedClaims = readyAnalysis ? readyAnalysis.metrics.unsupportedClaims : 0;
+  const criteriaMet = readyAnalysis ? readyAnalysis.criteria.filter((criterion) => criterion.status === "met").length : 0;
+  const criteriaTotal = readyAnalysis ? readyAnalysis.criteria.length : 8;
+  const criteriaPercent = packetReady ? (criteriaMet / Math.max(criteriaTotal, 1)) * 100 : 0;
+  const readinessScore = readyAnalysis ? readyAnalysis.packet.readinessScore : 0;
+  const averageConfidence = readyAnalysis ? readyAnalysis.metrics.averageConfidence * 100 : 0;
+  const agentProgress = events.length > 0 ? (visibleEvents.length / events.length) * 100 : 0;
+  const verdictTone = !packetReady ? "idle" : criticalGaps > 0 ? "warning" : "success";
+  const verdictLabel = packetReady
+    ? criticalGaps > 0
+      ? "Needs clinician review"
+      : "Ready for clinician review"
+    : status === "running"
+      ? "Running packet agents"
+      : "Awaiting packet run";
+  const verdictDescription = packetReady
+    ? criticalGaps > 0
+      ? "The packet is drafted, but critical documentation gaps are clearly blocked before submission."
+      : "Every packet claim is source-grounded and ready for physician review before submission."
+    : status === "running"
+      ? "BrainAuth is ingesting the PDF, extracting evidence, checking payer criteria, and preparing the packet."
+      : "Run the demo to parse the PDF, extract evidence, and build the packet draft.";
 
   useEffect(() => {
     if (status !== "running" || !analysis) return;
@@ -239,15 +308,27 @@ export default function Home() {
     URL.revokeObjectURL(url);
   }
 
+  async function downloadReviewText() {
+    if (!analysis) return;
+    const response = await fetch(
+      `/api/export/demo-packet/text?includeMedicationHistory=${includeMedicationHistory ? "true" : "false"}`
+    );
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${analysis.runId}-brainauth-verdict.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   async function downloadPdfPacket() {
     if (!analysis) return;
     setIsDownloading(true);
     try {
-      const response = await fetch("/api/packet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ analysis })
-      });
+      const response = await fetch(
+        `/api/export/demo-packet/pdf?includeMedicationHistory=${includeMedicationHistory ? "true" : "false"}`
+      );
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -290,14 +371,27 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="metricsBand" aria-label="Stroke impact metrics">
-        {impactMetrics.map((metric) => (
-          <article className="metricCard" key={metric.label}>
-            <span>{metric.label}</span>
-            <strong>{metric.value}</strong>
-            <small>{metric.note}</small>
-          </article>
-        ))}
+      <section className="demoSnapshotBand" aria-label="Demo outcome metrics">
+        <article className="snapshotCard primary">
+          <span>Packet readiness</span>
+          <strong>{packetReady ? `${readinessScore}%` : status === "running" ? "..." : "Run"}</strong>
+          <small>{verdictLabel}</small>
+        </article>
+        <article className="snapshotCard">
+          <span>Manual to BrainAuth</span>
+          <strong>{readyAnalysis ? readyAnalysis.packet.manualMinutes : 30} to {readyAnalysis ? readyAnalysis.packet.brainAuthMinutes : 2} min</strong>
+          <small>{readyAnalysis ? readyAnalysis.packet.minutesSaved : 28} minutes attacked</small>
+        </article>
+        <article className="snapshotCard success">
+          <span>Neurons at risk avoided</span>
+          <strong>{compactNumber(readyAnalysis ? readyAnalysis.packet.neuronsAtRiskAvoided : 53200000)}</strong>
+          <small>Estimate, not guaranteed neurons saved</small>
+        </article>
+        <article className="snapshotCard">
+          <span>Evidence safety</span>
+          <strong>{unsupportedClaims}</strong>
+          <small>unsupported claims</small>
+        </article>
       </section>
 
       <section className="commandGrid">
@@ -336,65 +430,70 @@ export default function Home() {
             <img src="/neuro-scan.svg" alt="CTA evidence visualization showing left M1 MCA LVO" />
           </div>
 
-          <div className="pdfDemoPanel">
-            <div className="sectionTitle">
-              <FileText size={16} aria-hidden="true" />
-              Demo EHR PDF
-            </div>
-            <iframe
-              title="BrainAuth synthetic stroke record PDF"
-              src="/demo/brainauth-stroke-demo-record.pdf#toolbar=0&navpanes=0"
-            />
-            <div className={`pdfIngestStatus ${ingestionStatus}`}>
-              {ingestionStatus === "running" ? (
-                <CircleDot size={15} aria-hidden="true" />
-              ) : ingestionStatus === "complete" ? (
-                <CheckCircle2 size={15} aria-hidden="true" />
-              ) : ingestionStatus === "error" ? (
-                <AlertTriangle size={15} aria-hidden="true" />
-              ) : (
-                <UploadCloud size={15} aria-hidden="true" />
-              )}
-              <div>
-                <strong>
-                  {ingestionStatus === "running"
-                    ? "Parsing PDF with pdf-parse"
-                    : ingestionStatus === "complete"
-                      ? "PDF ingested"
-                      : ingestionStatus === "error"
-                        ? "PDF ingestion failed"
-                        : "Ready to ingest PDF"}
-                </strong>
-                <span>
-                  {ingestionResult
-                    ? `${ingestionResult.parser} · ${ingestionResult.facts.length} fields extracted · ${ingestionResult.pageCount} page`
-                    : "Open-source local parser fallback for Azure Document Intelligence demo."}
-                </span>
-              </div>
+          <div className={`pdfIngestStatus ${ingestionStatus}`}>
+            {ingestionStatus === "running" ? (
+              <CircleDot size={15} aria-hidden="true" />
+            ) : ingestionStatus === "complete" ? (
+              <CheckCircle2 size={15} aria-hidden="true" />
+            ) : ingestionStatus === "error" ? (
+              <AlertTriangle size={15} aria-hidden="true" />
+            ) : (
+              <UploadCloud size={15} aria-hidden="true" />
+            )}
+            <div>
+              <strong>
+                {ingestionStatus === "running"
+                  ? "Parsing PDF"
+                  : ingestionStatus === "complete"
+                    ? "PDF ingested"
+                    : ingestionStatus === "error"
+                      ? "PDF ingestion failed"
+                      : "PDF ready"}
+              </strong>
+              <span>
+                {ingestionResult
+                  ? `${ingestionResult.parser} · ${ingestionResult.facts.length} fields · ${ingestionResult.pageCount} page · ${ingestionResult.unsupportedClaims} unsupported claims`
+                  : "Synthetic EHR record staged for Azure Document Intelligence or local parser fallback."}
+              </span>
             </div>
           </div>
 
-          <div className="documentStack">
-            <div className="sectionTitle">
-              <Layers3 size={16} aria-hidden="true" />
-              Uploaded Records
+          <CollapsiblePanel
+            title="Source PDF"
+            description="Open only when judges ask to see the ingested record."
+            icon={<FileText size={16} aria-hidden="true" />}
+          >
+            <div className="pdfDemoPanel">
+              <iframe
+                title="BrainAuth synthetic stroke record PDF"
+                src="/demo/brainauth-stroke-demo-record.pdf#toolbar=0&navpanes=0"
+              />
             </div>
-            {documentStack.map((doc, index) => {
-              const isParsed = status !== "idle" && Boolean(analysis);
-              return (
-                <div className="documentRow" key={doc.name}>
-                  <FileText size={16} aria-hidden="true" />
-                  <div>
-                    <strong>{doc.name}</strong>
-                    <span>{doc.meta}</span>
+          </CollapsiblePanel>
+
+          <CollapsiblePanel
+            title="Uploaded records"
+            description="EHR, CTA, payer policy, and transfer note."
+            icon={<Layers3 size={16} aria-hidden="true" />}
+          >
+            <div className="documentStack">
+              {documentStack.map((doc, index) => {
+                const isParsed = status !== "idle" && Boolean(analysis);
+                return (
+                  <div className="documentRow" key={doc.name}>
+                    <FileText size={16} aria-hidden="true" />
+                    <div>
+                      <strong>{doc.name}</strong>
+                      <span>{doc.meta}</span>
+                    </div>
+                    <small className={isParsed ? "parsed" : ""}>
+                      {isParsed ? "parsed" : index === 2 ? "ready" : "queued"}
+                    </small>
                   </div>
-                  <small className={isParsed ? "parsed" : ""}>
-                    {isParsed ? "parsed" : index === 2 ? "ready" : "queued"}
-                  </small>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </CollapsiblePanel>
         </aside>
 
         <section className="centerPanel panel">
@@ -429,21 +528,88 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="timeSavedHero">
-            <div>
-              <span>Manual packet baseline</span>
-              <strong>{analysis?.packet.manualMinutes ?? 30} min</strong>
+          <div className={`verdictDashboard ${verdictTone}`}>
+            <div className="readinessBlock">
+              <div className="readinessDial" style={{ "--score": readinessScore } as CSSProperties}>
+                <strong>{packetReady ? readinessScore : "--"}</strong>
+                <span>readiness</span>
+              </div>
+              <div>
+                <p className="eyebrow">Packet Verdict</p>
+                <h2>{verdictLabel}</h2>
+                <p>{verdictDescription}</p>
+              </div>
             </div>
-            <ChevronRight size={22} aria-hidden="true" />
-            <div>
-              <span>BrainAuth packet time</span>
-              <strong>{analysis?.packet.brainAuthMinutes ?? 2} min</strong>
+
+            <div className="verdictKpis">
+              <div>
+                <span>Time saved</span>
+                <strong>{readyAnalysis ? readyAnalysis.packet.minutesSaved : 28} min</strong>
+                <small>{readyAnalysis ? readyAnalysis.packet.manualMinutes : 30} min manual to {readyAnalysis ? readyAnalysis.packet.brainAuthMinutes : 2} min BrainAuth</small>
+              </div>
+              <div>
+                <span>Neurons at risk avoided</span>
+                <strong>{compactNumber(readyAnalysis ? readyAnalysis.packet.neuronsAtRiskAvoided : 53200000)}</strong>
+                <small>Estimate: minutes saved x 1.9M</small>
+              </div>
+              <div>
+                <span>Unsupported claims</span>
+                <strong>{unsupportedClaims}</strong>
+                <small>Claims without evidence are blocked</small>
+              </div>
+              <div>
+                <span>Human review items</span>
+                <strong>{reviewItems}</strong>
+                <small>Missing data stays visible</small>
+              </div>
             </div>
-            <div className="neuronsCounter">
-              <span>Neurons at risk avoided</span>
-              <strong>{compactNumber(analysis?.packet.neuronsAtRiskAvoided ?? 53200000)}</strong>
+
+            <div className="verdictProgressGrid">
+              <ProgressBar
+                label="Evidence coverage"
+                value={evidenceCoverage}
+                caption={packetReady ? "Packet facts mapped to source quotes." : "Runs after document ingestion."}
+                tone="success"
+              />
+              <ProgressBar
+                label="Criteria matched"
+                value={criteriaPercent}
+                caption={packetReady ? `${criteriaMet} of ${criteriaTotal} criteria matched or reviewed.` : "Payer matrix pending."}
+                tone={criticalGaps > 0 ? "warning" : "primary"}
+              />
+              <ProgressBar
+                label="Average confidence"
+                value={averageConfidence}
+                caption={packetReady ? "Source-grounded extraction confidence." : "Agent confidence pending."}
+                tone="primary"
+              />
             </div>
           </div>
+
+          {readyAnalysis && (
+            <div className="artifactStrip" aria-label="Download packet artifacts">
+              <div>
+                <p className="eyebrow">Packet Artifacts</p>
+                <h3>Download the verdict files judges expect to see.</h3>
+              </div>
+              <button type="button" onClick={downloadPdfPacket} disabled={isDownloading}>
+                <Download size={16} aria-hidden="true" />
+                {isDownloading ? "Building PDF" : "PDF Packet"}
+              </button>
+              <button type="button" onClick={() => void downloadReviewText()}>
+                <FileCheck2 size={16} aria-hidden="true" />
+                Verdict TXT
+              </button>
+              <button type="button" onClick={downloadLetter}>
+                <FileText size={16} aria-hidden="true" />
+                Letter TXT
+              </button>
+              <button type="button" onClick={downloadJson}>
+                <FileJson size={16} aria-hidden="true" />
+                FHIR JSON
+              </button>
+            </div>
+          )}
 
           <div className="chatSurface" aria-live="polite">
             <div className="chatMessage system">
@@ -479,11 +645,12 @@ export default function Home() {
             )}
 
             {ingestionResult && (
-              <div className="pdfParsedFacts">
-                <div className="sectionTitle">
-                  <SearchCheck size={16} aria-hidden="true" />
-                  PDF Ingestion Output
-                </div>
+              <CollapsiblePanel
+                title="Parsed PDF fields"
+                description={`${ingestionResult.parser} extracted ${ingestionResult.facts.length} fields from ${ingestionResult.pageCount} page.`}
+                icon={<SearchCheck size={16} aria-hidden="true" />}
+              >
+                <div className="pdfParsedFacts">
                 <div className="pdfParsedGrid">
                   {ingestionResult.facts.slice(0, 6).map((fact) => (
                     <div key={fact.label}>
@@ -494,6 +661,7 @@ export default function Home() {
                   ))}
                 </div>
               </div>
+              </CollapsiblePanel>
             )}
 
             {status === "complete" && analysis && criticalGaps === 0 && (
@@ -534,33 +702,56 @@ export default function Home() {
               </div>
             )}
 
-            {visibleEvents.length > 0 && (
-              <div className="eventStream">
-                {visibleEvents.map((event, index) => (
-                  <div className="eventLine" key={`${event.agentId}-${event.phase}-${index}`}>
-                    <div className="eventDot" />
-                    <div>
-                      <span>
-                        {event.agentName} · {event.phase}
-                      </span>
-                      <strong>{event.detail}</strong>
-                    </div>
-                    <small>{confidenceLabel(event.confidence)}</small>
-                  </div>
-                ))}
+            {(status === "running" || visibleEvents.length > 0) && (
+              <div className="agentProgressCard">
+                <div>
+                  <span>Agent run progress</span>
+                  <strong>
+                    {visibleEvents.length}/{events.length || 21} actions
+                  </strong>
+                </div>
+                <div className={`barTrack ${ingestionStatus === "running" ? "indeterminate" : "primary"}`} aria-hidden="true">
+                  <span style={{ width: `${Math.max(4, Math.min(100, agentProgress))}%` }} />
+                </div>
+                <small>
+                  {ingestionStatus === "running"
+                    ? "Document parsing is visible before agent execution."
+                    : activeEvent?.detail ?? "Agent action trace complete."}
+                </small>
               </div>
+            )}
+
+            {visibleEvents.length > 0 && (
+              <CollapsiblePanel
+                title="Agent action trace"
+                description={`${visibleEvents.length} of ${events.length} source-grounded actions streamed.`}
+                icon={<Activity size={16} aria-hidden="true" />}
+              >
+                <div className="eventStream">
+                  {visibleEvents.map((event, index) => (
+                    <div className="eventLine" key={`${event.agentId}-${event.phase}-${index}`}>
+                      <div className="eventDot" />
+                      <div>
+                        <span>
+                          {event.agentName} · {event.phase}
+                        </span>
+                        <strong>{event.detail}</strong>
+                      </div>
+                      <small>{confidenceLabel(event.confidence)}</small>
+                    </div>
+                  ))}
+                </div>
+              </CollapsiblePanel>
             )}
           </div>
 
-          {analysis && (
+          {readyAnalysis && (
             <div className="outputPanel">
               <div className="tabBar" role="tablist" aria-label="Generated packet views">
                 {[
-                  ["evidence", "Evidence", Database],
-                  ["criteria", "Criteria Matrix", ClipboardList],
                   ["packet", "Packet Preview", FileCheck2],
-                  ["audit", "Audit Trail", ShieldCheck],
-                  ["fhir", "FHIR JSON", FileJson]
+                  ["criteria", "Criteria Matrix", ClipboardList],
+                  ["evidence", "Evidence", Database]
                 ].map(([id, label, Icon]) => (
                   <button
                     key={id as string}
@@ -576,123 +767,128 @@ export default function Home() {
                 ))}
               </div>
 
-              {outputView === "evidence" && <EvidenceMap analysis={analysis} />}
+              {outputView === "evidence" && <EvidenceMap analysis={readyAnalysis} />}
 
-              {outputView === "criteria" && <CriteriaMatrix analysis={analysis} />}
+              {outputView === "criteria" && <CriteriaMatrix analysis={readyAnalysis} />}
 
               {outputView === "packet" && (
                 <div className="packetView">
                   <HumanReviewBanner />
-                  <PacketPreview analysis={analysis} />
-
-                  <div className="actionRow">
-                    <button type="button" onClick={downloadPdfPacket} disabled={isDownloading}>
-                      <Download size={16} aria-hidden="true" />
-                      {isDownloading ? "Building PDF" : "Download PDF Packet"}
-                    </button>
-                    <button type="button" onClick={downloadLetter}>
-                      <FileText size={16} aria-hidden="true" />
-                      Medical Necessity Letter
-                    </button>
-                    <button type="button" onClick={downloadJson}>
-                      <FileJson size={16} aria-hidden="true" />
-                      FHIR JSON
-                    </button>
-                  </div>
+                  <PacketPreview analysis={readyAnalysis} />
                 </div>
               )}
 
-              {outputView === "audit" && <AuditTrail analysis={analysis} />}
+              <div className="technicalDrawers">
+                <CollapsiblePanel
+                  title="Audit trail"
+                  description={`${readyAnalysis.events.length} events · ${readyAnalysis.metrics.unsupportedClaims} unsupported claims.`}
+                  icon={<ShieldCheck size={16} aria-hidden="true" />}
+                >
+                  <AuditTrail analysis={readyAnalysis} />
+                </CollapsiblePanel>
 
-              {outputView === "fhir" && <FhirJsonPanel analysis={analysis} />}
+                <CollapsiblePanel
+                  title="FHIR-style JSON"
+                  description="Exportable structured packet for integration demos."
+                  icon={<FileJson size={16} aria-hidden="true" />}
+                >
+                  <FhirJsonPanel analysis={readyAnalysis} />
+                </CollapsiblePanel>
+              </div>
             </div>
           )}
         </section>
 
         <aside className="rightPanel panel">
-          <div className="panelHeader">
-            <div>
-              <p className="eyebrow">Agent Activity</p>
-              <h2>{status === "running" ? activeEvent?.agentName ?? "Launching agents" : "Run Timeline"}</h2>
-            </div>
-            <span className={status === "complete" ? "statusPill done" : "statusPill"}>
-              <Activity size={14} aria-hidden="true" />
-              {status === "complete" ? "Complete" : status === "running" ? "Live" : "Standby"}
-            </span>
-          </div>
+          <CollapsiblePanel
+            title="Agent activity and safety checks"
+            description={
+              status === "running"
+                ? activeEvent?.detail ?? "Agents are running."
+                : status === "complete"
+                  ? `${analysis?.agents.length ?? 0} agents complete · ${unsupportedClaims} unsupported claims.`
+                  : "Expandable technical proof for judges."
+            }
+            icon={<Activity size={16} aria-hidden="true" />}
+            defaultOpen={status === "running"}
+          >
+            <div className="technicalGrid">
+              <div className="agentRail">
+                {(analysis?.agents ?? []).map((agent) => {
+                  const completedSteps = visibleEvents.filter((event) => event.agentId === agent.id).length;
+                  const visualStatus =
+                    completedSteps === 0
+                      ? "queued"
+                      : completedSteps < agent.steps.length
+                        ? "active"
+                        : agent.status;
 
-          <div className="agentRail">
-            {(analysis?.agents ?? []).map((agent) => {
-              const completedSteps = visibleEvents.filter((event) => event.agentId === agent.id).length;
-              const visualStatus =
-                completedSteps === 0
-                  ? "queued"
-                  : completedSteps < agent.steps.length
-                    ? "active"
-                    : agent.status;
-
-              return (
-                <div className={`agentCard ${visualStatus}`} key={agent.id}>
-                  <div className="agentIcon">
-                    {visualStatus === "complete" ? (
-                      <CheckCircle2 size={17} aria-hidden="true" />
-                    ) : visualStatus === "warning" ? (
-                      <AlertTriangle size={17} aria-hidden="true" />
-                    ) : visualStatus === "active" ? (
-                      <CircleDot size={17} aria-hidden="true" />
-                    ) : (
-                      <Workflow size={17} aria-hidden="true" />
-                    )}
-                  </div>
-                  <div>
-                    <strong>{agent.name}</strong>
-                    <span>{agent.purpose}</span>
-                    <div className="phaseChips">
-                      {agent.steps.map((step, index) => (
-                        <small className={index < completedSteps ? "phaseDone" : ""} key={`${agent.id}-${step.phase}-${index}`}>
-                          {step.phase}
-                        </small>
-                      ))}
+                  return (
+                    <div className={`agentCard ${visualStatus}`} key={agent.id}>
+                      <div className="agentIcon">
+                        {visualStatus === "complete" ? (
+                          <CheckCircle2 size={17} aria-hidden="true" />
+                        ) : visualStatus === "warning" ? (
+                          <AlertTriangle size={17} aria-hidden="true" />
+                        ) : visualStatus === "active" ? (
+                          <CircleDot size={17} aria-hidden="true" />
+                        ) : (
+                          <Workflow size={17} aria-hidden="true" />
+                        )}
+                      </div>
+                      <div>
+                        <strong>{agent.name}</strong>
+                        <span>{agent.purpose}</span>
+                        <div className="phaseChips">
+                          {agent.steps.map((step, index) => (
+                            <small className={index < completedSteps ? "phaseDone" : ""} key={`${agent.id}-${step.phase}-${index}`}>
+                              {step.phase}
+                            </small>
+                          ))}
+                        </div>
+                      </div>
                     </div>
+                  );
+                })}
+
+                {!analysis && (
+                  <div className="agentPlaceholder">
+                    <Stethoscope size={20} aria-hidden="true" />
+                    <span>Run the packet to stream source-grounded audit events.</span>
                   </div>
-                </div>
-              );
-            })}
-
-            {!analysis && (
-              <div className="agentPlaceholder">
-                <Stethoscope size={20} aria-hidden="true" />
-                <span>Run the packet to stream source-grounded audit events.</span>
+                )}
               </div>
-            )}
-          </div>
 
-          <div className="gapBox">
-            <div className="sectionTitle">
-              <AlertTriangle size={16} aria-hidden="true" />
-              Documentation Gaps
-            </div>
-            {analysis ? (
-              analysis.gaps.map((gap) => (
-                <div className="gapRow" key={gap.item}>
-                  <span className={severityClass(gap.severity)}>{gap.severity}</span>
-                  <strong>{gap.item}</strong>
-                  <p>{gap.action}</p>
-                  <small>{gap.owner}</small>
+              <div>
+                <div className="gapBox">
+                  <div className="sectionTitle">
+                    <AlertTriangle size={16} aria-hidden="true" />
+                    Documentation Gaps
+                  </div>
+                  {analysis ? (
+                    analysis.gaps.map((gap) => (
+                      <div className="gapRow" key={gap.item}>
+                        <span className={severityClass(gap.severity)}>{gap.severity}</span>
+                        <strong>{gap.item}</strong>
+                        <p>{gap.action}</p>
+                        <small>{gap.owner}</small>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="mutedCopy">No packet has been analyzed yet.</p>
+                  )}
+                  {analysis && criticalGaps > 0 && (
+                    <button className="resolveButton" type="button" onClick={attachMedicationHistory} disabled={status === "running"}>
+                      <Zap size={16} aria-hidden="true" />
+                      Attach Medication History
+                    </button>
+                  )}
                 </div>
-              ))
-            ) : (
-              <p className="mutedCopy">No packet has been analyzed yet.</p>
-            )}
-            {analysis && criticalGaps > 0 && (
-              <button className="resolveButton" type="button" onClick={attachMedicationHistory} disabled={status === "running"}>
-                <Zap size={16} aria-hidden="true" />
-                Attach Medication History
-              </button>
-            )}
-          </div>
 
-          <ObservabilityPanel analysis={analysis} />
+                <ObservabilityPanel analysis={analysis} />
+              </div>
+            </div>
+          </CollapsiblePanel>
         </aside>
       </section>
     </main>

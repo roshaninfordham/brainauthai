@@ -30,6 +30,9 @@ export function CriteriaMatrix({ analysis }: { analysis: AnalysisResult }) {
             </div>
             <div className="criteriaConfidence">
               <strong>{Math.round(item.confidence * 100)}%</strong>
+              <div className={`miniBar ${item.status === "missing" ? "danger" : item.status === "review" ? "warning" : ""}`}>
+                <span style={{ width: `${Math.round(item.confidence * 100)}%` }} />
+              </div>
               <span>{item.humanReviewRequired ? "Human review" : "Source matched"}</span>
             </div>
           </article>

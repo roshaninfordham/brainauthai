@@ -57,6 +57,9 @@ export async function POST(request: Request) {
     `Status: ${analysis.patient.status}`,
     `Facility: ${analysis.patient.facility}`,
     `Readiness score: ${analysis.packet.readinessScore}%`,
+    `Evidence coverage: ${analysis.metrics.evidenceCoveragePct}%`,
+    `Unsupported claims: ${analysis.metrics.unsupportedClaims}`,
+    `Human review items: ${analysis.metrics.humanReviewItems}`,
     `Time saved: ${analysis.packet.minutesSaved} minutes`,
     `Neurons at risk avoided: ${analysis.packet.neuronsAtRiskAvoided.toLocaleString()}`
   ];
