@@ -553,12 +553,73 @@ h3 {
 
 .errorBox {
   display: flex;
+  align-items: center;
   gap: 9px;
   padding: 12px;
   border: 1px solid rgba(220, 38, 38, 0.22);
   border-radius: 8px;
   color: var(--danger);
   background: var(--danger-soft);
+}
+
+.errorBox button {
+  margin-left: auto;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--danger);
+  cursor: pointer;
+}
+
+.runStateBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.runStateBanner svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.runStateBanner strong,
+.runStateBanner span {
+  display: block;
+}
+
+.runStateBanner span {
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.runStateBanner.active {
+  border-color: rgba(37, 99, 235, 0.24);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.runStateBanner.active svg {
+  animation: pulse 1.1s infinite;
+}
+
+.runStateBanner.success {
+  border-color: rgba(5, 150, 105, 0.24);
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.runStateBanner.warning {
+  border-color: rgba(217, 119, 6, 0.28);
+  color: var(--warning);
+  background: var(--warning-soft);
 }
 
 .eventStream {

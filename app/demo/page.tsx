@@ -375,6 +375,36 @@ export default function Home() {
               <small>{analysis?.mode === "azure-document-intelligence" ? "Azure parse path" : "Local demo parse path"}</small>
             </div>
 
+            {status === "running" && (
+              <div className="runStateBanner active">
+                <CircleDot size={17} aria-hidden="true" />
+                <div>
+                  <strong>{activeEvent?.phase ?? "Queued"}</strong>
+                  <span>{activeEvent?.detail ?? "Parsing synthetic stroke records..."}</span>
+                </div>
+              </div>
+            )}
+
+            {status === "complete" && analysis && criticalGaps === 0 && (
+              <div className="runStateBanner success">
+                <CheckCircle2 size={17} aria-hidden="true" />
+                <div>
+                  <strong>Packet draft ready for physician review.</strong>
+                  <span>Unsupported claims: {analysis.metrics.unsupportedClaims}. Evidence coverage: {analysis.metrics.evidenceCoveragePct}%.</span>
+                </div>
+              </div>
+            )}
+
+            {status === "complete" && analysis && criticalGaps > 0 && (
+              <div className="runStateBanner warning">
+                <AlertTriangle size={17} aria-hidden="true" />
+                <div>
+                  <strong>{criticalGaps} critical item requires human review.</strong>
+                  <span>Missing fields are blocked as gaps instead of being invented.</span>
+                </div>
+              </div>
+            )}
+
             {status === "idle" && (
               <div className="emptyRun">
                 <Workflow size={28} aria-hidden="true" />
@@ -387,6 +417,9 @@ export default function Home() {
               <div className="errorBox">
                 <AlertTriangle size={18} aria-hidden="true" />
                 <span>{error}</span>
+                <button type="button" onClick={() => void runAnalysis()}>
+                  Retry
+                </button>
               </div>
             )}
 
