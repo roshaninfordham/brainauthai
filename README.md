@@ -4,6 +4,20 @@
 
 BrainAuth AI is a clinician-reviewed documentation support tool for acute stroke transfer and payer-submission workflows. It does **not** delay emergency screening or stabilization. It automates documentation evidence, medical-necessity draft support, transfer packet assembly, payer criteria mapping, and audit trails around acute stroke care.
 
+## Product Screenshots
+
+### SaaS Landing Page
+
+![BrainAuth AI landing page](docs/assets/screenshots/brainauth-landing.png)
+
+### Stroke Packet Mission Control
+
+![BrainAuth AI stroke packet demo](docs/assets/screenshots/brainauth-packet-demo.png)
+
+### B.E. FAST Vision Monitoring Agent
+
+![BrainAuth AI B.E. FAST monitoring demo](docs/assets/screenshots/brainauth-fast-monitor.png)
+
 ## Why This Wins The Hackathon
 
 The demo is built around the judging rubric: a working MVP, visible agentic AI behavior, startup-grade positioning, strong UX, technical feasibility, and a clear future plan. The product feels like AI mission control instead of a form.
