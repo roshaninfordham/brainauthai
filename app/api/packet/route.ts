@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
   let y = 742;
   page.drawText("BrainAuth AI", { x: 44, y, size: 24, font: bold, color: ink });
-  page.drawText("Prior-auth-ready acute stroke packet", {
+  page.drawText("Acute stroke documentation draft for clinician review", {
     x: 44,
     y: y - 22,
     size: 11,

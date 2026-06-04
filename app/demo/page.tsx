@@ -506,7 +506,7 @@ export default function Home() {
             </div>
             <span className={status === "complete" ? "statusPill done" : "statusPill"}>
               <Activity size={14} aria-hidden="true" />
-              {status === "complete" ? "Complete" : status === "running" ? "Live" : "Ready"}
+              {status === "complete" ? "Complete" : status === "running" ? "Live" : "Standby"}
             </span>
           </div>
 

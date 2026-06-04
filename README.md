@@ -2,7 +2,7 @@
 
 **Prior Auth Before Brain Dies**
 
-BrainAuth AI is an autonomous documentation and prior-authorization readiness agent for acute stroke teams. It does **not** delay emergency screening or stabilization. It automates the documentation, medical-necessity proof, transfer packet, payer criteria mapping, and audit-ready workflow around acute stroke care.
+BrainAuth AI is a clinician-reviewed documentation support tool for acute stroke transfer and payer-submission workflows. It does **not** delay emergency screening or stabilization. It automates documentation evidence, medical-necessity draft support, transfer packet assembly, payer criteria mapping, and audit trails around acute stroke care.
 
 ## Why This Wins The Hackathon
 
@@ -16,21 +16,21 @@ Do not pitch this as "prior auth blocks emergency stroke treatment."
 
 Use this framing:
 
-> BrainAuth AI does not delay emergency stabilization. It automates the documentation, medical-necessity proof, transfer packet, and authorization-ready workflow around acute stroke care so clinicians do not lose time chasing paperwork while the patient's brain is dying.
+> BrainAuth AI does not delay emergency stabilization. It automates the documentation, medical-necessity proof, transfer packet, and payer-submission documentation workflow around acute stroke care so clinicians do not lose time chasing paperwork while the patient's brain is at risk.
 
 This caveat matters because EMTALA requires emergency screening and stabilizing treatment regardless of ability to pay.
 
 ## MVP Features
 
 - Agentic workflow with seven named agents.
-- Live agent timeline with Research -> Plan -> Act -> Verify -> Report phases.
+- Live agent timeline with Extracted -> Mapped -> Checked -> Flagged -> Prepared -> Verified action states.
 - Synthetic EHR, CT/CTA report, transfer note, and payer policy case data.
 - Payer criteria match with confidence scores.
 - Missing documentation checklist and gap resolution loop.
 - Medical necessity letter generation.
 - FHIR-style JSON packet generation.
 - PDF packet export through `/api/packet`.
-- Audit trail with every extraction, decision, confidence score, and missing field.
+- Audit trail with every extracted fact, source, confidence score, and missing field.
 - Source-backed impact metrics for the pitch.
 - Azure AI Document Intelligence integration hook with local deterministic fallback.
 
@@ -84,7 +84,7 @@ BrainAuth AI outputs:
 - Missing documentation checklist
 - Medical necessity letter
 - FHIR-style JSON packet
-- Prior-auth / transfer-ready PDF
+- Clinician-review transfer and payer-submission PDF draft
 - Audit log showing every agent step
 
 ## Agent Workflow
@@ -99,19 +99,20 @@ flowchart LR
   F --> G[Packet Builder Agent]
   G --> H[Audit Agent]
   H --> I[Clinician Review]
-  I --> J[Transfer and Authorization-Ready Packet]
+  I --> J[Clinician-Reviewed Transfer and Payer-Submission Packet]
 ```
 
 Every agent follows the same loop:
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Research
-  Research --> Plan
-  Plan --> Act
-  Act --> Verify
-  Verify --> Report
-  Report --> [*]
+  [*] --> Extracted
+  Extracted --> Mapped
+  Mapped --> Checked
+  Checked --> Flagged
+  Flagged --> Prepared
+  Prepared --> Verified
+  Verified --> [*]
 ```
 
 ## Architecture
@@ -184,7 +185,7 @@ timeline
                 : Azure Document Intelligence parser hook
   Pilot : Real PDF upload workflow
         : Hospital-specific packet templates
-        : Clinician approval queue
+        : Clinician review and sign-off queue
   Enterprise : EHR integration
              : Payer policy library
              : Transfer center collaboration
