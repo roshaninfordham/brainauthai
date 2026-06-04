@@ -1,0 +1,34 @@
+<svg width="720" height="520" viewBox="0 0 720 520" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">CTA evidence visualization</title>
+  <desc id="desc">Stylized acute stroke imaging visualization showing a highlighted vessel occlusion and documentation evidence paths.</desc>
+  <rect width="720" height="520" rx="8" fill="#0B1020"/>
+  <rect x="38" y="36" width="644" height="452" rx="8" fill="#111827" stroke="#2A3347"/>
+  <rect x="64" y="64" width="310" height="388" rx="8" fill="#070B15" stroke="#23314B"/>
+  <rect x="398" y="64" width="258" height="92" rx="8" fill="#151A27" stroke="#2A3347"/>
+  <rect x="398" y="178" width="258" height="92" rx="8" fill="#151A27" stroke="#2A3347"/>
+  <rect x="398" y="292" width="258" height="160" rx="8" fill="#151A27" stroke="#2A3347"/>
+  <path d="M213 398C284 398 333 343 333 271C333 188 275 120 213 120C151 120 98 188 98 271C98 343 142 398 213 398Z" fill="#1F2937"/>
+  <path d="M213 382C271 382 318 330 318 270C318 201 271 136 213 136C155 136 113 201 113 270C113 330 155 382 213 382Z" fill="#293244"/>
+  <path d="M214 138C198 186 198 239 211 286C224 333 222 359 214 382" stroke="#5B6475" stroke-width="8" stroke-linecap="round"/>
+  <path d="M211 233C183 219 156 216 134 225" stroke="#4B5568" stroke-width="7" stroke-linecap="round"/>
+  <path d="M217 234C249 216 277 212 303 222" stroke="#4B5568" stroke-width="7" stroke-linecap="round"/>
+  <path d="M219 277C256 273 285 286 308 315" stroke="#4B5568" stroke-width="7" stroke-linecap="round"/>
+  <path d="M209 280C177 277 151 288 130 315" stroke="#4B5568" stroke-width="7" stroke-linecap="round"/>
+  <path d="M217 234C249 216 277 212 303 222" stroke="#14B8A6" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="282" cy="217" r="14" fill="#EF4444"/>
+  <circle cx="282" cy="217" r="24" stroke="#EF4444" stroke-opacity="0.35" stroke-width="4"/>
+  <text x="82" y="93" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="18" font-weight="700">CTA Evidence Map</text>
+  <text x="82" y="425" fill="#9CA3AF" font-family="Arial, sans-serif" font-size="13">Left M1 MCA LVO detected</text>
+  <text x="424" y="94" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="16" font-weight="700">Hemorrhage</text>
+  <text x="424" y="126" fill="#10B981" font-family="Arial, sans-serif" font-size="26" font-weight="700">Excluded</text>
+  <text x="424" y="208" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="16" font-weight="700">ASPECTS</text>
+  <text x="424" y="240" fill="#38BDF8" font-family="Arial, sans-serif" font-size="28" font-weight="700">8</text>
+  <text x="424" y="322" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="16" font-weight="700">Evidence Chain</text>
+  <circle cx="432" cy="352" r="5" fill="#10B981"/>
+  <line x1="432" y1="357" x2="432" y2="416" stroke="#2A3347" stroke-width="2"/>
+  <circle cx="432" cy="386" r="5" fill="#10B981"/>
+  <circle cx="432" cy="420" r="5" fill="#F59E0B"/>
+  <text x="452" y="356" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">CTA confirms LVO</text>
+  <text x="452" y="390" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">NIHSS supports severity</text>
+  <text x="452" y="424" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="13">Medication attestation pending</text>
+</svg>

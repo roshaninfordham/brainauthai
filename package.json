@@ -1,0 +1,28 @@
+{
+  "name": "brainauth-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BrainAuth AI hackathon MVP: agentic stroke documentation and prior-authorization readiness.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "lucide-react": "latest",
+    "next": "^15.5.19",
+    "pdf-lib": "latest",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
+  }
+}
