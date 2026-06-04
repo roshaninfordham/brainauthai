@@ -340,6 +340,74 @@ h3 {
   object-fit: cover;
 }
 
+.pdfDemoPanel {
+  margin-bottom: 16px;
+}
+
+.pdfDemoPanel iframe {
+  width: 100%;
+  height: 280px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.pdfIngestStatus {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.pdfIngestStatus svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+
+.pdfIngestStatus.running {
+  color: var(--primary);
+  border-color: rgba(37, 99, 235, 0.24);
+  background: var(--primary-soft);
+}
+
+.pdfIngestStatus.running svg {
+  color: var(--primary);
+  animation: pulse 1.1s infinite;
+}
+
+.pdfIngestStatus.complete {
+  color: var(--success);
+  border-color: rgba(5, 150, 105, 0.24);
+  background: var(--success-soft);
+}
+
+.pdfIngestStatus.complete svg {
+  color: var(--success);
+}
+
+.pdfIngestStatus.error {
+  color: var(--danger);
+  border-color: rgba(220, 38, 38, 0.24);
+  background: var(--danger-soft);
+}
+
+.pdfIngestStatus strong,
+.pdfIngestStatus span {
+  display: block;
+}
+
+.pdfIngestStatus span {
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .sectionTitle {
   gap: 7px;
   margin-bottom: 10px;
@@ -625,6 +693,54 @@ h3 {
 .eventStream {
   display: grid;
   gap: 8px;
+}
+
+.pdfParsedFacts {
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.pdfParsedGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pdfParsedGrid div {
+  min-height: 78px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.pdfParsedGrid span,
+.pdfParsedGrid strong,
+.pdfParsedGrid small {
+  display: block;
+}
+
+.pdfParsedGrid span {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.pdfParsedGrid strong {
+  margin-top: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.pdfParsedGrid small {
+  margin-top: 5px;
+  color: var(--success);
+  font-size: 11px;
+  font-weight: 750;
 }
 
 .eventLine {
@@ -1119,7 +1235,8 @@ h3 {
   }
 
   .patientStats,
-  .observabilityGrid {
+  .observabilityGrid,
+  .pdfParsedGrid {
     grid-template-columns: 1fr;
   }
 

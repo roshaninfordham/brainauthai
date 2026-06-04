@@ -33,6 +33,7 @@ This caveat matters because EMTALA requires emergency screening and stabilizing 
 - Audit trail with every extracted fact, source, confidence score, and missing field.
 - Source-backed impact metrics for the pitch.
 - Azure AI Document Intelligence integration hook with local deterministic fallback.
+- Embedded synthetic EHR PDF viewer and open-source PDF ingestion fallback for the live demo.
 
 ## Quickstart
 
@@ -47,6 +48,12 @@ Open:
 http://localhost:3000
 ```
 
+Regenerate the synthetic one-page EHR PDF:
+
+```bash
+npm run generate:demo-pdf
+```
+
 Run checks:
 
 ```bash
@@ -57,13 +64,14 @@ npm run build
 ## Demo Flow
 
 1. Click **Run Stroke Packet**.
-2. Watch the agent activity stream.
-3. Show the "neurons at risk avoided" counter.
-4. Open the Criteria, FHIR JSON, and Audit tabs.
-5. Show the critical missing medication history gap.
-6. Click **Attach Medication History**.
-7. Watch the packet regenerate with a higher readiness score.
-8. Download the PDF packet.
+2. Watch the embedded PDF ingest with Azure-aware parsing or the `pdf-parse` fallback.
+3. Watch the agent activity stream.
+4. Show the "neurons at risk avoided" counter.
+5. Open the Evidence, Criteria Matrix, Packet Preview, Audit Trail, and FHIR JSON tabs.
+6. Show the critical missing medication history gap.
+7. Click **Attach Medication History**.
+8. Watch the packet regenerate with a higher readiness score.
+9. Download the PDF packet.
 
 ## Product Definition
 

@@ -18,6 +18,7 @@ import {
   Layers3,
   Play,
   RadioTower,
+  SearchCheck,
   ShieldCheck,
   Sparkles,
   Stethoscope,
@@ -40,6 +41,27 @@ import type { AgentRun, AnalysisResult, CriteriaMatch, DocumentationGap } from "
 
 type RunStatus = "idle" | "running" | "complete" | "error";
 type OutputView = "evidence" | "criteria" | "packet" | "audit" | "fhir";
+type IngestionStatus = "idle" | "running" | "complete" | "error";
+
+interface ParsedPdfFact {
+  label: string;
+  value: string;
+  confidence: number;
+  sourceQuote: string;
+}
+
+interface PdfIngestionResult {
+  mode: string;
+  parser: string;
+  fileName: string;
+  sourcePath: string;
+  pageCount: number;
+  processingMs: number;
+  textPreview: string;
+  facts: ParsedPdfFact[];
+  unsupportedClaims: number;
+  humanReviewItems: number;
+}
 
 interface TimelineEvent {
   agentId: string;
@@ -95,6 +117,8 @@ export default function Home() {
   const [outputView, setOutputView] = useState<OutputView>("packet");
   const [error, setError] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [ingestionStatus, setIngestionStatus] = useState<IngestionStatus>("idle");
+  const [ingestionResult, setIngestionResult] = useState<PdfIngestionResult | null>(null);
 
   const events = useMemo<TimelineEvent[]>(() => {
     if (!analysis) return [];
@@ -135,6 +159,7 @@ export default function Home() {
     setAnalysis(null);
 
     try {
+      await ingestDemoPdf();
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -150,6 +175,28 @@ export default function Home() {
     }
   }
 
+  async function ingestDemoPdf() {
+    setIngestionStatus("running");
+    setIngestionResult(null);
+    const startedAt = Date.now();
+
+    try {
+      const response = await fetch("/api/ingest-demo-pdf");
+      if (!response.ok) throw new Error("Demo PDF ingestion failed");
+      const result = (await response.json()) as PdfIngestionResult;
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < 1200) {
+        await new Promise((resolve) => window.setTimeout(resolve, 1200 - elapsed));
+      }
+      setIngestionResult(result);
+      setIngestionStatus("complete");
+      return result;
+    } catch (err) {
+      setIngestionStatus("error");
+      throw err;
+    }
+  }
+
   function attachMedicationHistory() {
     setIncludeMedicationHistory(true);
     void runAnalysis(true);
@@ -162,6 +209,8 @@ export default function Home() {
     setIncludeMedicationHistory(false);
     setOutputView("packet");
     setError("");
+    setIngestionStatus("idle");
+    setIngestionResult(null);
   }
 
   function downloadJson() {
@@ -287,6 +336,44 @@ export default function Home() {
             <img src="/neuro-scan.svg" alt="CTA evidence visualization showing left M1 MCA LVO" />
           </div>
 
+          <div className="pdfDemoPanel">
+            <div className="sectionTitle">
+              <FileText size={16} aria-hidden="true" />
+              Demo EHR PDF
+            </div>
+            <iframe
+              title="BrainAuth synthetic stroke record PDF"
+              src="/demo/brainauth-stroke-demo-record.pdf#toolbar=0&navpanes=0"
+            />
+            <div className={`pdfIngestStatus ${ingestionStatus}`}>
+              {ingestionStatus === "running" ? (
+                <CircleDot size={15} aria-hidden="true" />
+              ) : ingestionStatus === "complete" ? (
+                <CheckCircle2 size={15} aria-hidden="true" />
+              ) : ingestionStatus === "error" ? (
+                <AlertTriangle size={15} aria-hidden="true" />
+              ) : (
+                <UploadCloud size={15} aria-hidden="true" />
+              )}
+              <div>
+                <strong>
+                  {ingestionStatus === "running"
+                    ? "Parsing PDF with pdf-parse"
+                    : ingestionStatus === "complete"
+                      ? "PDF ingested"
+                      : ingestionStatus === "error"
+                        ? "PDF ingestion failed"
+                        : "Ready to ingest PDF"}
+                </strong>
+                <span>
+                  {ingestionResult
+                    ? `${ingestionResult.parser} · ${ingestionResult.facts.length} fields extracted · ${ingestionResult.pageCount} page`
+                    : "Open-source local parser fallback for Azure Document Intelligence demo."}
+                </span>
+              </div>
+            </div>
+          </div>
+
           <div className="documentStack">
             <div className="sectionTitle">
               <Layers3 size={16} aria-hidden="true" />
@@ -379,8 +466,32 @@ export default function Home() {
               <div className="runStateBanner active">
                 <CircleDot size={17} aria-hidden="true" />
                 <div>
-                  <strong>{activeEvent?.phase ?? "Queued"}</strong>
-                  <span>{activeEvent?.detail ?? "Parsing synthetic stroke records..."}</span>
+                  <strong>
+                    {ingestionStatus === "running" ? "Document ingestion" : activeEvent?.phase ?? "Queued"}
+                  </strong>
+                  <span>
+                    {ingestionStatus === "running"
+                      ? "Parsing the embedded synthetic EHR PDF with pdf-parse before agent extraction."
+                      : activeEvent?.detail ?? "Preparing source-grounded agent run..."}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {ingestionResult && (
+              <div className="pdfParsedFacts">
+                <div className="sectionTitle">
+                  <SearchCheck size={16} aria-hidden="true" />
+                  PDF Ingestion Output
+                </div>
+                <div className="pdfParsedGrid">
+                  {ingestionResult.facts.slice(0, 6).map((fact) => (
+                    <div key={fact.label}>
+                      <span>{fact.label}</span>
+                      <strong>{fact.value}</strong>
+                      <small>{Math.round(fact.confidence * 100)}% confidence</small>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

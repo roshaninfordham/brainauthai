@@ -25,6 +25,7 @@ No secrets are committed.
 ```text
 GET  /api/azure-document
 POST /api/azure-document
+GET  /api/ingest-demo-pdf
 ```
 
 `GET` reports the current mode.
@@ -41,7 +42,17 @@ POST /api/azure-document
 
 ## Demo Fallback Behavior
 
-The live MVP never depends on Azure availability. Without credentials, BrainAuth runs the deterministic local parser and shows local parser demo mode. With credentials, uploaded files can be analyzed by Azure AI Document Intelligence.
+The live MVP never depends on Azure availability. Without credentials, BrainAuth runs an open-source `pdf-parse` local parser and shows local parser demo mode. With credentials, `/api/ingest-demo-pdf` attempts Azure AI Document Intelligence first, then falls back locally if the Azure call fails.
+
+## Azure Screenshots
+
+See:
+
+```text
+docs/AZURE_DOCUMENT_INTELLIGENCE_EVIDENCE.md
+docs/assets/azure-document-intelligence/azure-document-intelligence-marketplace.png
+docs/assets/azure-document-intelligence/azure-document-intelligence-review-create.png
+```
 
 ## Judge Screenshot Checklist
 
