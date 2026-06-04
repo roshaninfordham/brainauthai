@@ -1,26 +1,58 @@
 # Azure Usage
 
-## Service Used
+## Services
 
-BrainAuth AI is designed to use **Azure AI Document Intelligence** for PDF/form extraction.
+BrainAuth AI has two Azure-ready integration points:
 
-Why it fits:
+1. **Azure AI Document Intelligence** for PDFs and forms.
+2. **Azure AI Vision** for B.E. FAST video-frame analysis.
 
-- EHR packet PDFs need structured text extraction.
-- CTA reports need page-level source text.
-- Payer policy PDFs need tables, clauses, and key-value extraction.
-- Confidence scores can be mapped into BrainAuth source evidence and human-review flags.
+The hackathon demo remains reliable without Azure credentials. When credentials are missing, the app truthfully labels local deterministic fallback mode.
 
-## Environment Variables
+## System Diagram
+
+```mermaid
+flowchart TB
+  subgraph Inputs[Demo Inputs]
+    PDF[Synthetic EHR PDF]
+    Video[Uploaded or Synthetic B.E. FAST Video]
+  end
+
+  subgraph Azure[Azure-Ready Services]
+    DI[Azure AI Document Intelligence]
+    Vision[Azure AI Vision]
+  end
+
+  subgraph Fallback[Local Demo Fallbacks]
+    PdfParse[pdf-parse]
+    VisionDemo[Deterministic Frame Findings]
+  end
+
+  PDF --> RoutePDF[/api/ingest-demo-pdf/]
+  RoutePDF -->|credentials configured| DI
+  RoutePDF -->|no credentials| PdfParse
+  Video --> RouteVision[/api/vision-monitor/]
+  RouteVision -->|credentials configured| Vision
+  RouteVision -->|no credentials| VisionDemo
+```
+
+## Document Intelligence
+
+Purpose:
+
+- Parse EHR packet PDFs.
+- Parse CT/CTA reports.
+- Parse payer policy PDFs.
+- Preserve confidence scores for source-grounded claims.
+
+Environment variables:
 
 ```bash
 AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT="https://<resource>.cognitiveservices.azure.com"
 AZURE_DOCUMENT_INTELLIGENCE_KEY="<key>"
 ```
 
-No secrets are committed.
-
-## API Route
+Routes:
 
 ```text
 GET  /api/azure-document
@@ -28,25 +60,60 @@ POST /api/azure-document
 GET  /api/ingest-demo-pdf
 ```
 
-`GET` reports the current mode.
+Fallback behavior:
 
-`POST` accepts a PDF in form field `file`. If Azure credentials are missing, the route returns a truthful fallback response:
+- Without credentials, `/api/ingest-demo-pdf` uses `pdf-parse`.
+- With credentials, `/api/ingest-demo-pdf` attempts Azure AI Document Intelligence first and falls back locally if Azure fails.
+- Azure is never shown as connected unless credentials exist.
 
-```json
-{
-  "mode": "local-demo",
-  "configured": false,
-  "result": "Azure not configured; using deterministic local demo parser for the live MVP."
-}
+## Azure AI Vision
+
+Purpose:
+
+- Sample frames from an uploaded or live video stream.
+- Analyze visual features relevant to B.E. FAST monitoring.
+- Combine vision findings with EHR context and escalation agents.
+
+Environment variables:
+
+```bash
+AZURE_AI_VISION_ENDPOINT="https://<resource>.cognitiveservices.azure.com"
+AZURE_AI_VISION_KEY="<key>"
 ```
 
-## Demo Fallback Behavior
+Legacy-compatible variable names also work:
 
-The live MVP never depends on Azure availability. Without credentials, BrainAuth runs an open-source `pdf-parse` local parser and shows local parser demo mode. With credentials, `/api/ingest-demo-pdf` attempts Azure AI Document Intelligence first, then falls back locally if the Azure call fails.
+```bash
+AZURE_COMPUTER_VISION_ENDPOINT="https://<resource>.cognitiveservices.azure.com"
+AZURE_COMPUTER_VISION_KEY="<key>"
+```
 
-## Azure Screenshots
+Route:
 
-See:
+```text
+POST /api/vision-monitor
+```
+
+Fallback behavior:
+
+- Without credentials, `/api/vision-monitor` returns deterministic B.E. FAST demo findings.
+- With credentials, the route reports Azure AI Vision configured.
+- The current MVP does not make diagnostic claims; it prepares emergency-first escalation actions.
+
+## Judge Screenshot Checklist
+
+- Azure portal resource page for Document Intelligence.
+- Azure portal resource page for Azure AI Vision or Computer Vision.
+- `.env.local` showing variable names only, with values hidden.
+- `/api/azure-document` response showing configured mode if credentials exist.
+- `/api/vision-monitor` response showing configured mode if credentials exist.
+- Live app badges:
+  - Local parser demo mode or Azure Document Intelligence connected.
+  - Azure AI Vision-ready or Azure AI Vision configured.
+
+## Current Evidence Assets
+
+Document Intelligence screenshots are stored here:
 
 ```text
 docs/AZURE_DOCUMENT_INTELLIGENCE_EVIDENCE.md
@@ -54,15 +121,8 @@ docs/assets/azure-document-intelligence/azure-document-intelligence-marketplace.
 docs/assets/azure-document-intelligence/azure-document-intelligence-review-create.png
 ```
 
-## Judge Screenshot Checklist
+## Official References
 
-- Azure portal resource page for Document Intelligence.
-- `.env.local` showing variable names only, with values hidden.
-- `/api/azure-document` response showing connected mode.
-- Live app badge showing Azure Document Intelligence connected.
-
-## Related Azure Options
-
-- Azure Static Web Apps Free can host the frontend and provide the clearest deployment proof.
-- Azure Functions Consumption plan can host a future `/run-packet` endpoint.
-- Semantic Kernel is useful Microsoft open-source agent tooling, but it is not by itself proof of consuming an Azure cloud service.
+- Azure AI Vision documentation: https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/
+- Azure near-real-time video frame analysis: https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/how-to/analyze-video
+- Azure AI Document Intelligence pricing: https://azure.microsoft.com/en-us/pricing/details/document-intelligence/

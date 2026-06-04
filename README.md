@@ -29,11 +29,12 @@ This caveat matters because EMTALA requires emergency screening and stabilizing 
 - Missing documentation checklist and gap resolution loop.
 - Medical necessity letter generation.
 - FHIR-style JSON packet generation.
-- PDF packet export through `/api/packet`.
+- PDF/TXT packet export through `/api/export/demo-packet/pdf`, `/api/export/demo-packet/text`, and legacy `/api/packet`.
 - Audit trail with every extracted fact, source, confidence score, and missing field.
 - Source-backed impact metrics for the pitch.
 - Azure AI Document Intelligence integration hook with local deterministic fallback.
 - Embedded synthetic EHR PDF viewer and open-source PDF ingestion fallback for the live demo.
+- B.E. FAST video monitoring extension with upload preview, Azure AI Vision-ready frame analysis, EHR context fusion, care-circle alert simulation, and emergency-first safety language.
 
 ## Quickstart
 
@@ -67,11 +68,24 @@ npm run build
 2. Watch the embedded PDF ingest with Azure-aware parsing or the `pdf-parse` fallback.
 3. Watch the agent activity stream.
 4. Show the "neurons at risk avoided" counter.
-5. Open the Evidence, Criteria Matrix, Packet Preview, Audit Trail, and FHIR JSON tabs.
+5. Open Packet Preview, Criteria Matrix, Evidence, collapsed Audit Trail, and collapsed FHIR JSON.
 6. Show the critical missing medication history gap.
 7. Click **Attach Medication History**.
 8. Watch the packet regenerate with a higher readiness score.
 9. Download the PDF packet.
+
+## B.E. FAST Monitor Demo Flow
+
+1. Scroll to **B.E. FAST Monitoring Agent**.
+2. Upload a symptom video or click **Use Demo Clip**.
+3. Click **Run B.E. FAST Monitor**.
+4. Watch the staged video-frame agents sample the stream, score B.E. FAST signals, fuse EHR context, and prepare escalation actions.
+5. Show the automated action buttons:
+   - Emergency prompt
+   - Loved one notification
+   - Urgent stroke clinician callback
+   - Monitoring audit
+6. Explain the safety posture: this is not a diagnosis; sudden stroke symptoms require immediate emergency medical attention.
 
 ## Product Definition
 
@@ -136,6 +150,7 @@ flowchart TB
   subgraph API[Next.js API Routes]
     Analyze[/POST /api/analyze/]
     Packet[/POST /api/packet/]
+    Vision[/POST /api/vision-monitor/]
   end
 
   subgraph Agents[Deterministic Agent Engine]
@@ -146,10 +161,12 @@ flowchart TB
     Gaps[Gap Detector]
     Builder[Packet Builder]
     Audit[Audit Agent]
+    Fast[B.E. FAST Monitor Agents]
   end
 
-  subgraph Azure[One Azure Service]
+  subgraph Azure[Azure-Ready Services]
     DI[Azure AI Document Intelligence]
+    AIV[Azure AI Vision]
   end
 
   UI --> Analyze
@@ -157,11 +174,18 @@ flowchart TB
   Agents --> Outputs
   Outputs --> Packet
   DI -. optional PDF extraction .-> Analyze
+  UI --> Vision
+  Vision --> Fast
+  AIV -. optional video frame analysis .-> Vision
 ```
 
-## Azure AI Document Intelligence
+## Azure Integrations
 
-This project intentionally uses only one Azure service: **Azure AI Document Intelligence**. Microsoft lists a free tier with 0-500 pages free per month for Document Intelligence. The current MVP runs without Azure credentials using deterministic synthetic extraction, but the adapter is ready in `lib/azureDocumentIntelligence.ts`.
+BrainAuth AI has two Azure-ready integration points. The live MVP remains deterministic if credentials are unavailable.
+
+### Azure AI Document Intelligence
+
+Azure AI Document Intelligence parses EHR PDFs, CTA reports, transfer notes, and payer policy documents. The current MVP runs without Azure credentials using deterministic synthetic extraction and the open-source `pdf-parse` fallback, but the adapter is ready in `lib/azureDocumentIntelligence.ts`.
 
 Set these environment variables to enable the Azure-ready path:
 
@@ -172,6 +196,17 @@ AZURE_DOCUMENT_INTELLIGENCE_KEY="<key>"
 
 The adapter uses the prebuilt layout model to extract text, tables, and key-value structure from PDFs. In a production build, uploaded EHR, CTA, transfer, and payer policy PDFs would be routed through this parser before the agent engine.
 
+### Azure AI Vision / Computer Vision
+
+Azure AI Vision is the current Azure service family for visual analysis. The B.E. FAST monitor route at `/api/vision-monitor` is Azure-ready and falls back to deterministic local video-frame findings when credentials are missing.
+
+```bash
+AZURE_AI_VISION_ENDPOINT="https://<resource>.cognitiveservices.azure.com"
+AZURE_AI_VISION_KEY="<key>"
+```
+
+The production path samples frames from a live or uploaded video stream, submits selected frames to Azure AI Vision, then fuses frame findings with EHR context and care-circle routing. The hackathon path keeps those outputs deterministic for a reliable live demo.
+
 ## Data Sources
 
 - CDC Stroke Facts: https://www.cdc.gov/stroke/data-research/facts-stats/index.html
@@ -180,6 +215,8 @@ The adapter uses the prebuilt layout model to extract text, tables, and key-valu
 - AMA Prior Authorization Survey: https://www.ama-assn.org/system/files/prior-authorization-survey.pdf
 - CMS EMTALA: https://www.cms.gov/medicare/regulations-guidance/legislation/emergency-medical-treatment-labor-act
 - Azure Document Intelligence Pricing: https://azure.microsoft.com/en-us/pricing/details/document-intelligence/
+- Azure AI Vision documentation: https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/
+- Azure near-real-time video frame analysis: https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/how-to/analyze-video
 - World Stroke Organization Impact: https://www.world-stroke.org/world-stroke-day-campaign/about-stroke/impact-of-stroke
 - WSO Global Stroke Fact Sheet 2025: https://pubmed.ncbi.nlm.nih.gov/39635884/
 

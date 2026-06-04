@@ -27,9 +27,13 @@ timeline
   Pilot : Real PDF upload
         : Azure Document Intelligence extraction
         : Clinician review queue
+  Monitor : B.E. FAST video monitoring
+          : Azure AI Vision frame analysis
+          : Care-circle escalation
   Enterprise : Payer policy library
              : EHR integration
              : Transfer center workflow
+             : Post-discharge monitoring workflow
   Platform : Acute neurovascular coordination layer
            : Prior-auth automation
            : Stroke network operations
@@ -37,4 +41,4 @@ timeline
 
 ## Long-Term Vision
 
-BrainAuth starts as the documentation wedge and expands into an operating layer for acute neurovascular care coordination.
+BrainAuth starts as the documentation wedge, expands into B.E. FAST monitoring and emergency-first escalation, then becomes an operating layer for acute neurovascular care coordination.

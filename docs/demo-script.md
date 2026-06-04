@@ -32,6 +32,14 @@ Click **Attach Medication History**.
 
 "BrainAuth AI does not replace physicians, and it does not delay emergency stabilization. It removes paperwork friction around time-critical stroke care so clinicians can move faster, document better, and defend medically necessary intervention."
 
+## Optional B.E. FAST Extension
+
+Scroll to **B.E. FAST Monitoring Agent**.
+
+Click **Use Demo Clip**, then **Run B.E. FAST Monitor**.
+
+"This is the expansion path: pre-monitoring and post-monitoring. The monitor samples video frames, watches B.E. FAST signals, fuses them with EHR context, and prepares emergency-first actions. It is not diagnosing stroke. It prompts emergency services, notifies loved ones, requests an urgent clinician callback, and saves an audit trail."
+
 ## Big Metric
 
 ```text

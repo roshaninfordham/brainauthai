@@ -34,6 +34,7 @@ import { AuditTrail } from "../../components/product/AuditTrail";
 import { CriteriaMatrix } from "../../components/product/CriteriaMatrix";
 import { EvidenceMap } from "../../components/product/EvidenceMap";
 import { FhirJsonPanel } from "../../components/product/FhirJsonPanel";
+import { FastMonitor } from "../../components/product/FastMonitor";
 import { HumanReviewBanner } from "../../components/product/HumanReviewBanner";
 import { ObservabilityPanel } from "../../components/product/ObservabilityPanel";
 import { PacketPreview } from "../../components/product/PacketPreview";
@@ -891,6 +892,8 @@ export default function Home() {
           </CollapsiblePanel>
         </aside>
       </section>
+
+      <FastMonitor />
     </main>
   );
 }

@@ -11,6 +11,8 @@ Confidence < 0.85 -> needs human review.
 Missing field -> documentation gap, not hallucinated value.
 Packet claim without evidence -> blocked as unsupported.
 Physician review required before submission.
+Vision finding without frame/context evidence -> mark needs review.
+Sudden B.E. FAST symptoms -> emergency-first prompt, not routine appointment.
 ```
 
 ## Source Evidence Shape
@@ -34,7 +36,26 @@ Physician review required before submission.
 - Documents parsed
 - Criteria matched
 - Gaps found
+- B.E. FAST alert score
+- Signal confidence bars
+- Emergency-first action audit
+
+## Monitoring Safety Flow
+
+```mermaid
+flowchart TD
+  Frame[Video frame signal] --> Evidence{Signal evidence available?}
+  Evidence -->|No| Review[Needs human review]
+  Evidence -->|Yes| BEFAST{B.E. FAST threshold crossed?}
+  BEFAST -->|No| Monitor[Continue monitoring]
+  BEFAST -->|Yes| Emergency[Prompt emergency services now]
+  Emergency --> Loved[Notify loved one]
+  Emergency --> Doctor[Request urgent stroke clinician callback]
+  Emergency --> Audit[Save monitoring audit]
+  Review --> Audit
+  Monitor --> Audit
+```
 
 ## Clinical Boundary
 
-BrainAuth AI does not diagnose, order treatment, approve care, deny care, replace clinicians, or delay emergency stabilization. It prepares documentation drafts for human review.
+BrainAuth AI does not diagnose, order treatment, approve care, deny care, replace clinicians, or delay emergency stabilization. It prepares documentation drafts, monitoring alerts, and care-circle action drafts for human review and emergency-first response.

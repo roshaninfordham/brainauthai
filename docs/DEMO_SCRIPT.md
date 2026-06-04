@@ -26,13 +26,33 @@ Point out:
 
 Show:
 
-- Evidence tab
 - Criteria Matrix tab
 - Packet Preview tab
-- Audit Trail tab
-- FHIR JSON tab
+- Evidence tab
+- Collapsed Audit Trail drawer
+- Collapsed FHIR JSON drawer
+- Packet artifact downloads: PDF, Verdict TXT, Letter TXT, FHIR JSON
 
-## 2:00-2:45 Copilot Build
+## 2:00-2:35 B.E. FAST Monitor
+
+Scroll to **B.E. FAST Monitoring Agent**.
+
+Say: This is the expansion from acute packet readiness into pre/post monitoring. Stroke symptoms appear suddenly, so the monitor uses B.E. FAST: Balance, Eyes, Face, Arms, Speech, and Time.
+
+Click **Use Demo Clip**, then **Run B.E. FAST Monitor**.
+
+Point out:
+
+- The upload button is visible for a real symptom video.
+- The video frame overlay shows what the vision monitor is sampling.
+- The Azure AI Vision adapter is truthfully labeled as configured or local demo mode.
+- Agents stream with visible 1-2 second steps.
+- The system fuses video warning signals with EHR risk context.
+- It prepares emergency-first actions: call emergency services, notify loved one, request urgent stroke clinician callback, and save an audit.
+
+Say: This is not a diagnosis and does not tell someone to wait for a routine appointment. Sudden B.E. FAST symptoms mean emergency medical attention now.
+
+## 2:35-3:05 Copilot Build
 
 Open `/copilot`.
 
@@ -45,10 +65,10 @@ Show:
 
 Say: GitHub Copilot was used as an AI pair programmer for UI refactor, schemas, agent runner, docs, and QA.
 
-## 2:45-3:20 Azure
+## 3:05-3:35 Azure
 
-BrainAuth is Azure-ready through Azure AI Document Intelligence. If credentials are configured, `/api/azure-document` can parse uploaded PDFs. Without credentials, the deterministic local parser keeps the demo reliable.
+BrainAuth is Azure-ready through Azure AI Document Intelligence for PDFs and Azure AI Vision for B.E. FAST video frame monitoring. If credentials are configured, the app reports configured mode. Without credentials, deterministic local fallbacks keep the live demo reliable.
 
-## 3:20-4:00 Close
+## 3:35-4:00 Close
 
-BrainAuth does not replace physicians and does not make treatment decisions. It removes documentation friction around time-critical stroke care. The beachhead is stroke packet documentation, expanding into prior-auth automation, transfer coordination, and stroke network operations.
+BrainAuth does not replace physicians and does not make treatment decisions. It removes documentation friction around time-critical stroke care and extends into emergency-first monitoring workflows. The beachhead is stroke packet documentation, expanding into prior-auth automation, transfer coordination, B.E. FAST monitoring, and stroke network operations.

@@ -63,3 +63,22 @@ flowchart TB
 - Clinical output is source-grounded or marked missing/needs review.
 - The app builds without Azure credentials.
 - Documentation explains architecture, agents, safety, Azure usage, Copilot usage, demo script, and startup path.
+
+## Current Completed Scope
+
+```mermaid
+flowchart TB
+  Landing[/Landing Page/] --> Demo[/Demo Page/]
+  Demo --> Packet[Stroke Packet Workflow]
+  Demo --> Monitor[B.E. FAST Monitoring Workflow]
+  Packet --> PDF[PDF/TXT/FHIR Exports]
+  Monitor --> Alerts[Emergency Prompt + Care Circle Actions]
+  AzureDI[Azure AI Document Intelligence] -. optional .-> Packet
+  AzureVision[Azure AI Vision] -. optional .-> Monitor
+```
+
+- `/demo` now has a clean judge-facing stroke packet workflow with collapsed technical panels.
+- `/api/export/demo-packet/pdf` and `/api/export/demo-packet/text` provide deterministic artifact downloads.
+- `/api/vision-monitor` powers the B.E. FAST video monitoring extension with Azure AI Vision-ready configured/fallback behavior.
+- The B.E. FAST section includes upload controls, synthetic demo clip, visible frame overlays, staged monitoring agents, signal confidence bars, and emergency-first care actions.
+- README, Azure usage, architecture, agents, hallucination safety, startup story, demo script, and final QA docs have been updated for the current system.

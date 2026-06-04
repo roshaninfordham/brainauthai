@@ -20,4 +20,8 @@ Every clinical fact must have a source quote and confidence score. Missing field
 
 ## Azure
 
-Use Azure AI Document Intelligence only when credentials exist. Otherwise, keep a truthful local parser fallback.
+Use Azure AI Document Intelligence and Azure AI Vision only when credentials exist. Otherwise, keep truthful deterministic local parser and local vision demo fallbacks.
+
+## B.E. FAST Monitoring
+
+Add a monitoring demo that accepts uploaded video or a synthetic demo clip, shows B.E. FAST frame analysis, fuses EHR context, and prepares emergency-first care-circle actions without making diagnostic claims.
