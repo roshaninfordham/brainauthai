@@ -538,7 +538,7 @@ export default function Home() {
                     <span>{agent.purpose}</span>
                     <div className="phaseChips">
                       {agent.steps.map((step, index) => (
-                        <small className={index < completedSteps ? "phaseDone" : ""} key={step.phase}>
+                        <small className={index < completedSteps ? "phaseDone" : ""} key={`${agent.id}-${step.phase}-${index}`}>
                           {step.phase}
                         </small>
                       ))}
