@@ -1074,3 +1074,429 @@ h3 {
     padding: 10px 12px;
   }
 }
+
+.landingShell {
+  min-height: 100vh;
+  padding: 18px;
+}
+
+.landingNav,
+.landingHero,
+.landingMetrics,
+.landingSection,
+.landingFooter {
+  max-width: 1180px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.landingNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 8px 0 22px;
+}
+
+.landingNav .brandBlock strong {
+  display: block;
+  font-size: 18px;
+}
+
+.landingNavActions,
+.heroActions,
+.landingFooter a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.landingNavActions a:not(.primaryButton):not(.navButton),
+.navButton,
+.secondaryButton {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.navButton,
+.secondaryButton {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.landingHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 0.88fr);
+  gap: 42px;
+  align-items: center;
+  padding: 42px 0 28px;
+}
+
+.heroCopy {
+  display: grid;
+  gap: 20px;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(5, 150, 105, 0.24);
+  border-radius: 999px;
+  color: var(--success);
+  background: var(--success-soft);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.heroCopy p,
+.sectionCopy p,
+.marketCard p {
+  color: var(--text-secondary);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.heroProduct,
+.chartCard,
+.workflowColumn,
+.agentArchitectureCard,
+.marketCard {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.heroProduct {
+  padding: 18px;
+}
+
+.heroProductHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.heroProductHeader span,
+.heroTimeGrid span,
+.miniAgentRow span,
+.landingMetricCard span,
+.landingMetricCard small,
+.agentArchitectureCard p,
+.landingFooter span {
+  color: var(--text-muted);
+}
+
+.heroProductHeader strong,
+.heroProductHeader span {
+  display: block;
+}
+
+.heroProductHeader strong {
+  margin-top: 5px;
+}
+
+.heroTimeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.heroTimeGrid div {
+  min-height: 92px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.heroTimeGrid span,
+.heroTimeGrid strong {
+  display: block;
+}
+
+.heroTimeGrid strong {
+  margin-top: 10px;
+  color: var(--primary);
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+}
+
+.miniAgentList {
+  display: grid;
+  gap: 8px;
+}
+
+.miniAgentRow {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.miniAgentRow svg {
+  color: var(--success);
+}
+
+.miniAgentRow strong,
+.miniAgentRow span {
+  display: block;
+}
+
+.miniAgentRow span {
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+.miniAgentRow small {
+  color: var(--success);
+  font-weight: 800;
+}
+
+.landingMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 18px 0 28px;
+}
+
+.landingMetricCard {
+  min-height: 124px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.landingMetricCard span,
+.landingMetricCard strong,
+.landingMetricCard small {
+  display: block;
+}
+
+.landingMetricCard span {
+  min-height: 38px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.landingMetricCard strong {
+  margin-top: 10px;
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+}
+
+.landingMetricCard small {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.landingSection {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  padding: 44px 0;
+  border-top: 1px solid var(--border);
+}
+
+.sectionCopy {
+  display: grid;
+  gap: 12px;
+}
+
+.sectionCopy h2 {
+  font-size: clamp(25px, 3vw, 36px);
+}
+
+.chartCard {
+  min-height: 340px;
+  padding: 18px;
+}
+
+.workflowCompare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.workflowColumn {
+  padding: 16px;
+}
+
+.workflowColumn.warning {
+  border-color: rgba(217, 119, 6, 0.2);
+}
+
+.workflowColumn.success {
+  border-color: rgba(5, 150, 105, 0.2);
+}
+
+.workflowTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.workflowColumn.warning .workflowTitle svg {
+  color: var(--warning);
+}
+
+.workflowColumn.success .workflowTitle svg {
+  color: var(--success);
+}
+
+.workflowStep {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.workflowStep svg {
+  color: var(--text-muted);
+}
+
+.architectureSection {
+  grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.1fr);
+}
+
+.agentArchitecture {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.agentArchitectureCard {
+  min-height: 138px;
+  padding: 15px;
+}
+
+.agentArchitectureCard span {
+  color: var(--agent-purple);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.agentArchitectureCard strong {
+  display: block;
+  margin-top: 10px;
+}
+
+.agentArchitectureCard p {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.marketSection {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.marketCard {
+  min-height: 238px;
+  padding: 18px;
+}
+
+.marketCard svg {
+  color: var(--primary);
+}
+
+.marketCard h2 {
+  margin-top: 16px;
+  font-size: 21px;
+}
+
+.marketCard p {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.landingFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 30px 0 42px;
+  border-top: 1px solid var(--border);
+}
+
+.landingFooter strong,
+.landingFooter span {
+  display: block;
+}
+
+.landingFooter span {
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.landingFooter a {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+@media (max-width: 980px) {
+  .landingHero,
+  .landingSection,
+  .architectureSection,
+  .marketSection {
+    grid-template-columns: 1fr;
+  }
+
+  .landingMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .landingNav,
+  .landingFooter,
+  .heroProductHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .landingNavActions,
+  .heroActions {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .landingNavActions a,
+  .heroActions a {
+    justify-content: center;
+  }
+
+  .landingHero {
+    padding-top: 20px;
+  }
+
+  .heroTimeGrid,
+  .workflowCompare,
+  .agentArchitecture,
+  .landingMetrics {
+    grid-template-columns: 1fr;
+  }
+}

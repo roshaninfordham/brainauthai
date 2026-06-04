@@ -2,235 +2,169 @@
 
 import {
   Activity,
-  AlertTriangle,
+  ArrowRight,
   Brain,
   CheckCircle2,
-  ChevronRight,
-  CircleDot,
-  ClipboardList,
-  Clock,
-  Download,
-  FileCheck2,
-  FileJson,
+  ClipboardCheck,
+  Cloud,
+  Database,
   FileText,
-  Gauge,
-  HeartPulse,
-  Layers3,
-  Play,
-  RadioTower,
+  Route,
+  SearchCheck,
   ShieldCheck,
-  Sparkles,
-  Stethoscope,
-  TimerReset,
-  UploadCloud,
-  Workflow,
-  Zap
+  Timer
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from "recharts";
 import { impactMetrics } from "../lib/sample-case";
-import type { AgentRun, AnalysisResult, CriteriaMatch, DocumentationGap } from "../lib/types";
 
-type RunStatus = "idle" | "running" | "complete" | "error";
-type OutputView = "packet" | "criteria" | "fhir" | "audit";
+const neuronData = [0, 10, 20, 30, 60].map((minutes) => ({
+  minutes,
+  neurons: minutes * 1900000,
+  label: `${minutes * 1.9}M`
+}));
 
-interface TimelineEvent {
-  agentId: string;
-  agentName: string;
-  phase: string;
-  detail: string;
-  confidence: number;
-}
-
-const documentStack = [
-  { name: "ED stroke note", meta: "NIHSS, LKW, vitals" },
-  { name: "CT / CTA report", meta: "LVO, ASPECTS, hemorrhage" },
-  { name: "Payer policy PDF", meta: "Coverage checklist" },
-  { name: "Transfer note", meta: "Receiving center handoff" }
+const beforeWorkflow = [
+  "Manual chart review",
+  "Payer policy lookup",
+  "Missing documentation chase",
+  "Packet assembly",
+  "Delayed handoff"
 ];
 
-function compactNumber(value: number) {
-  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-  return value.toLocaleString();
+const afterWorkflow = [
+  "Upload records",
+  "Agents extract evidence",
+  "Criteria documentation view",
+  "Gap detection",
+  "Clinician review packet"
+];
+
+const agents = [
+  ["Triage", "Extract NIHSS, LKW, vitals, symptoms"],
+  ["Imaging", "Map CT/CTA evidence and hemorrhage exclusion"],
+  ["Policy", "Normalize payer policy into criteria"],
+  ["Necessity", "Connect source facts to documentation needs"],
+  ["Gap", "Flag missing fields without inventing data"],
+  ["Packet", "Prepare draft packet and FHIR-style JSON"],
+  ["Audit", "Check grounding, confidence, and review items"]
+];
+
+function formatNeurons(value: number) {
+  if (value === 0) return "0";
+  return `${Math.round(value / 1000000)}M`;
 }
 
-function confidenceLabel(value: number) {
-  return `${Math.round(value * 100)}%`;
-}
-
-function severityClass(severity: DocumentationGap["severity"]) {
-  if (severity === "critical") return "severityCritical";
-  if (severity === "moderate") return "severityModerate";
-  return "severityLow";
-}
-
-function criteriaClass(status: CriteriaMatch["status"]) {
-  if (status === "met") return "criteriaMet";
-  if (status === "missing") return "criteriaMissing";
-  return "criteriaReview";
-}
-
-function agentRuntime(agents: AgentRun[]) {
-  const runtime = agents.reduce((sum, agent) => sum + agent.durationMs, 0) / 1000;
-  const tokens = agents.reduce((sum, agent) => sum + agent.tokens, 0);
-  const cost = agents.reduce((sum, agent) => sum + agent.costUsd, 0);
-  const confidence =
-    agents.reduce((sum, agent) => sum + agent.confidence, 0) / Math.max(agents.length, 1);
-
-  return { runtime, tokens, cost, confidence };
-}
-
-export default function Home() {
-  const [status, setStatus] = useState<RunStatus>("idle");
-  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [visibleCount, setVisibleCount] = useState(0);
-  const [includeMedicationHistory, setIncludeMedicationHistory] = useState(false);
-  const [outputView, setOutputView] = useState<OutputView>("packet");
-  const [error, setError] = useState("");
-  const [isDownloading, setIsDownloading] = useState(false);
-
-  const events = useMemo<TimelineEvent[]>(() => {
-    if (!analysis) return [];
-    return analysis.agents.flatMap((agent) =>
-      agent.steps.map((step) => ({
-        agentId: agent.id,
-        agentName: agent.name,
-        phase: step.phase,
-        detail: step.detail,
-        confidence: step.confidence
-      }))
-    );
-  }, [analysis]);
-
-  const visibleEvents = events.slice(0, visibleCount);
-  const activeEvent = status === "running" ? events[Math.min(visibleCount, events.length - 1)] : null;
-  const runtime = analysis ? agentRuntime(analysis.agents) : null;
-  const criticalGaps = analysis?.gaps.filter((gap) => gap.severity === "critical").length ?? 0;
-
-  useEffect(() => {
-    if (status !== "running" || !analysis) return;
-    if (visibleCount >= events.length) {
-      const done = window.setTimeout(() => setStatus("complete"), 350);
-      return () => window.clearTimeout(done);
-    }
-
-    const timer = window.setTimeout(() => {
-      setVisibleCount((count) => Math.min(count + 1, events.length));
-    }, 420);
-
-    return () => window.clearTimeout(timer);
-  }, [analysis, events.length, status, visibleCount]);
-
-  async function runAnalysis(nextMedicationState = includeMedicationHistory) {
-    setStatus("running");
-    setError("");
-    setVisibleCount(0);
-    setOutputView("packet");
-    setAnalysis(null);
-
-    try {
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ includeMedicationHistory: nextMedicationState })
-      });
-
-      if (!response.ok) throw new Error("Analysis failed");
-      const result = (await response.json()) as AnalysisResult;
-      setAnalysis(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Analysis failed");
-      setStatus("error");
-    }
-  }
-
-  function attachMedicationHistory() {
-    setIncludeMedicationHistory(true);
-    void runAnalysis(true);
-  }
-
-  function resetDemo() {
-    setStatus("idle");
-    setAnalysis(null);
-    setVisibleCount(0);
-    setIncludeMedicationHistory(false);
-    setOutputView("packet");
-    setError("");
-  }
-
-  function downloadJson() {
-    if (!analysis) return;
-    const blob = new Blob([JSON.stringify(analysis.packet.fhirPacket, null, 2)], {
-      type: "application/json"
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${analysis.runId}-fhir-packet.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function downloadLetter() {
-    if (!analysis) return;
-    const blob = new Blob([analysis.packet.medicalNecessityLetter], {
-      type: "text/plain"
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${analysis.runId}-medical-necessity-letter.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function downloadPdfPacket() {
-    if (!analysis) return;
-    setIsDownloading(true);
-    try {
-      const response = await fetch("/api/packet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ analysis })
-      });
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${analysis.runId}-brainauth-packet.pdf`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setIsDownloading(false);
-    }
-  }
-
+export default function LandingPage() {
   return (
-    <main className="appShell">
-      <header className="topBar">
-        <div className="brandBlock">
-          <div className="brandMark">
+    <main className="landingShell">
+      <nav className="landingNav" aria-label="Primary navigation">
+        <Link className="brandBlock" href="/">
+          <span className="brandMark">
             <Brain size={23} aria-hidden="true" />
-          </div>
-          <div>
-            <p className="eyebrow">Prior Auth Before Brain Dies</p>
-            <h1>BrainAuth AI</h1>
-          </div>
-        </div>
-        <div className="topActions">
-          <span className="azureBadge">
-            <RadioTower size={15} aria-hidden="true" />
-            Azure AI Document Intelligence
           </span>
-          <span className="caveatBadge">
-            <ShieldCheck size={15} aria-hidden="true" />
-            Emergency stabilization stays first
+          <span>
+            <span className="eyebrow">Agentic stroke documentation</span>
+            <strong>BrainAuth AI</strong>
           </span>
+        </Link>
+        <div className="landingNavActions">
+          <a href="#architecture">Architecture</a>
+          <Link className="navButton" href="/copilot">Copilot proof</Link>
+          <Link className="primaryButton" href="/demo">
+            Launch Live MVP
+            <ArrowRight size={16} aria-hidden="true" />
+          </Link>
         </div>
-      </header>
+      </nav>
 
-      <section className="metricsBand" aria-label="Stroke impact metrics">
-        {impactMetrics.map((metric) => (
-          <article className="metricCard" key={metric.label}>
+      <section className="landingHero">
+        <motion.div
+          className="heroCopy"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
+          <span className="heroBadge">
+            <ShieldCheck size={16} aria-hidden="true" />
+            Human review required before submission
+          </span>
+          <h1>Review-ready stroke packet drafts before brain dies.</h1>
+          <p>
+            BrainAuth AI turns EHR notes, CTA reports, transfer notes, and payer
+            policies into a source-grounded stroke documentation packet in one
+            agentic run.
+          </p>
+          <div className="heroActions">
+            <Link className="primaryButton" href="/demo">
+              Launch Live MVP
+              <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+            <a className="secondaryButton" href="#workflow">
+              See workflow
+            </a>
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="heroProduct"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.08 }}
+          aria-label="BrainAuth product preview"
+        >
+          <div className="heroProductHeader">
+            <div>
+              <span>Stroke packet run</span>
+              <strong>John Doe · NIHSS 18 · LKW 08:12</strong>
+            </div>
+            <span className="statusPill done">Review draft</span>
+          </div>
+          <div className="heroTimeGrid">
+            <div>
+              <span>Manual baseline</span>
+              <strong>30 min</strong>
+            </div>
+            <div>
+              <span>BrainAuth demo</span>
+              <strong>2 min</strong>
+            </div>
+            <div>
+              <span>Neurons at risk avoided</span>
+              <strong>53.2M</strong>
+            </div>
+          </div>
+          <div className="miniAgentList">
+            {[
+              ["Imaging Agent", "Evidence found: left M1 MCA occlusion", "96%"],
+              ["Policy Agent", "6 criteria matched, 1 needs review", "91%"],
+              ["Audit Agent", "Unsupported claims: 0", "95%"]
+            ].map(([agent, output, confidence]) => (
+              <div className="miniAgentRow" key={agent}>
+                <CheckCircle2 size={16} aria-hidden="true" />
+                <div>
+                  <strong>{agent}</strong>
+                  <span>{output}</span>
+                </div>
+                <small>{confidence}</small>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </section>
+
+      <section className="landingMetrics" aria-label="Stroke and prior authorization metrics">
+        {impactMetrics.slice(0, 8).map((metric) => (
+          <article className="landingMetricCard" key={metric.label}>
             <span>{metric.label}</span>
             <strong>{metric.value}</strong>
             <small>{metric.note}</small>
@@ -238,362 +172,152 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="commandGrid">
-        <aside className="leftPanel panel">
-          <div className="panelHeader">
-            <div>
-              <p className="eyebrow">Patient</p>
-              <h2>{analysis?.patient.name ?? "John Doe"}</h2>
-            </div>
-            <span className="statusPill critical">
-              <HeartPulse size={14} aria-hidden="true" />
-              Critical
-            </span>
-          </div>
-
-          <div className="patientStats">
-            <div>
-              <span>Age</span>
-              <strong>{analysis?.patient.age ?? 64}</strong>
-            </div>
-            <div>
-              <span>NIHSS</span>
-              <strong>{analysis?.facts.find((fact) => fact.label === "NIHSS")?.value ?? "18"}</strong>
-            </div>
-            <div>
-              <span>Last Known Well</span>
-              <strong>{analysis?.facts.find((fact) => fact.label === "Last Known Well")?.value ?? "08:12 AM"}</strong>
-            </div>
-            <div>
-              <span>Status</span>
-              <strong>LVO</strong>
-            </div>
-          </div>
-
-          <div className="scanFrame">
-            <img src="/neuro-scan.svg" alt="CTA evidence visualization showing left M1 MCA LVO" />
-          </div>
-
-          <div className="documentStack">
-            <div className="sectionTitle">
-              <Layers3 size={16} aria-hidden="true" />
-              Uploaded Records
-            </div>
-            {documentStack.map((doc, index) => {
-              const isParsed = status !== "idle" && Boolean(analysis);
-              return (
-                <div className="documentRow" key={doc.name}>
-                  <FileText size={16} aria-hidden="true" />
-                  <div>
-                    <strong>{doc.name}</strong>
-                    <span>{doc.meta}</span>
-                  </div>
-                  <small className={isParsed ? "parsed" : ""}>
-                    {isParsed ? "parsed" : index === 2 ? "ready" : "queued"}
-                  </small>
-                </div>
-              );
-            })}
-          </div>
-        </aside>
-
-        <section className="centerPanel panel">
-          <div className="missionHeader">
-            <div>
-              <p className="eyebrow">AI Mission Control</p>
-              <h2>Clinician-review stroke packet in one run</h2>
-            </div>
-            <div className="missionControls">
-              <button
-                className="iconButton"
-                type="button"
-                title="Reset demo"
-                aria-label="Reset demo"
-                onClick={resetDemo}
-              >
-                <TimerReset size={18} aria-hidden="true" />
-              </button>
-              <button
-                className="primaryButton"
-                type="button"
-                onClick={() => void runAnalysis()}
-                disabled={status === "running"}
-              >
-                {status === "running" ? (
-                  <CircleDot size={17} aria-hidden="true" />
-                ) : (
-                  <Play size={17} aria-hidden="true" />
-                )}
-                {status === "running" ? "Agents Running" : "Run Stroke Packet"}
-              </button>
-            </div>
-          </div>
-
-          <div className="timeSavedHero">
-            <div>
-              <span>Manual packet baseline</span>
-              <strong>{analysis?.packet.manualMinutes ?? 30} min</strong>
-            </div>
-            <ChevronRight size={22} aria-hidden="true" />
-            <div>
-              <span>BrainAuth packet time</span>
-              <strong>{analysis?.packet.brainAuthMinutes ?? 2} min</strong>
-            </div>
-            <div className="neuronsCounter">
-              <span>Neurons at risk avoided</span>
-              <strong>{compactNumber(analysis?.packet.neuronsAtRiskAvoided ?? 53200000)}</strong>
-            </div>
-          </div>
-
-          <div className="chatSurface" aria-live="polite">
-            <div className="chatMessage system">
-              <Sparkles size={18} aria-hidden="true" />
-              <p>
-                BrainAuth AI prepares source-grounded documentation evidence around acute
-                stroke care. It does not delay emergency screening or stabilization.
-              </p>
-            </div>
-
-            <div className="uploadStrip">
-              <div>
-                <UploadCloud size={19} aria-hidden="true" />
-                <span>Synthetic EHR, CTA report, transfer note, and payer policy loaded</span>
-              </div>
-              <small>{analysis?.mode === "azure-document-intelligence" ? "Azure parse path" : "Local demo parse path"}</small>
-            </div>
-
-            {status === "idle" && (
-              <div className="emptyRun">
-                <Workflow size={28} aria-hidden="true" />
-                <h3>Six clinical agents standing by</h3>
-                <p>Extract facts, map criteria, check evidence, flag gaps, and prepare a review draft.</p>
-              </div>
-            )}
-
-            {status === "error" && (
-              <div className="errorBox">
-                <AlertTriangle size={18} aria-hidden="true" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {visibleEvents.length > 0 && (
-              <div className="eventStream">
-                {visibleEvents.map((event, index) => (
-                  <div className="eventLine" key={`${event.agentId}-${event.phase}-${index}`}>
-                    <div className="eventDot" />
-                    <div>
-                      <span>
-                        {event.agentName} · {event.phase}
-                      </span>
-                      <strong>{event.detail}</strong>
-                    </div>
-                    <small>{confidenceLabel(event.confidence)}</small>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {analysis && (
-            <div className="outputPanel">
-              <div className="tabBar" role="tablist" aria-label="Generated packet views">
-                {[
-                  ["packet", "Packet", FileCheck2],
-                  ["criteria", "Criteria", ClipboardList],
-                  ["fhir", "FHIR JSON", FileJson],
-                  ["audit", "Audit", ShieldCheck]
-                ].map(([id, label, Icon]) => (
-                  <button
-                    key={id as string}
-                    className={outputView === id ? "activeTab" : ""}
-                    type="button"
-                    role="tab"
-                    aria-selected={outputView === id}
-                    onClick={() => setOutputView(id as OutputView)}
-                  >
-                    <Icon size={16} aria-hidden="true" />
-                    {label as string}
-                  </button>
-                ))}
-              </div>
-
-              {outputView === "packet" && (
-                <div className="packetView">
-                  <div className="readinessBlock">
-                    <div className="readinessDial" style={{ "--score": analysis.packet.readinessScore } as React.CSSProperties}>
-                      <strong>{analysis.packet.readinessScore}%</strong>
-                      <span>Review</span>
-                    </div>
-                    <div>
-                      <h3>{analysis.packet.disposition}</h3>
-                      <p>{analysis.packet.medicalNecessityLetter.split("\n\n")[2]}</p>
-                    </div>
-                  </div>
-
-                  <div className="actionRow">
-                    <button type="button" onClick={downloadPdfPacket} disabled={isDownloading}>
-                      <Download size={16} aria-hidden="true" />
-                      {isDownloading ? "Building PDF" : "Download PDF Packet"}
-                    </button>
-                    <button type="button" onClick={downloadLetter}>
-                      <FileText size={16} aria-hidden="true" />
-                      Medical Necessity Letter
-                    </button>
-                    <button type="button" onClick={downloadJson}>
-                      <FileJson size={16} aria-hidden="true" />
-                      FHIR JSON
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {outputView === "criteria" && (
-                <div className="criteriaList">
-                  {analysis.criteria.map((item) => (
-                    <div className="criteriaRow" key={item.criterion}>
-                      <span className={criteriaClass(item.status)}>{item.status}</span>
-                      <div>
-                        <strong>{item.criterion}</strong>
-                        <p>{item.evidence}</p>
-                      </div>
-                      <small>{confidenceLabel(item.confidence)}</small>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {outputView === "fhir" && (
-                <pre className="jsonBlock">{JSON.stringify(analysis.packet.fhirPacket, null, 2)}</pre>
-              )}
-
-              {outputView === "audit" && (
-                <div className="auditList">
-                  {analysis.audit.map((event) => (
-                    <div className="auditRow" key={`${event.at}-${event.agent}`}>
-                      <Clock size={15} aria-hidden="true" />
-                      <div>
-                        <strong>{event.agent}</strong>
-                        <span>
-                          {event.action}: {event.result}
-                        </span>
-                      </div>
-                      <small>{confidenceLabel(event.confidence)}</small>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </section>
-
-        <aside className="rightPanel panel">
-          <div className="panelHeader">
-            <div>
-              <p className="eyebrow">Agent Activity</p>
-              <h2>{status === "running" ? activeEvent?.agentName ?? "Launching agents" : "Run Timeline"}</h2>
-            </div>
-            <span className={status === "complete" ? "statusPill done" : "statusPill"}>
-              <Activity size={14} aria-hidden="true" />
-              {status === "complete" ? "Complete" : status === "running" ? "Live" : "Ready"}
-            </span>
-          </div>
-
-          <div className="agentRail">
-            {(analysis?.agents ?? []).map((agent) => {
-              const completedSteps = visibleEvents.filter((event) => event.agentId === agent.id).length;
-              const visualStatus =
-                completedSteps === 0
-                  ? "queued"
-                  : completedSteps < agent.steps.length
-                    ? "active"
-                    : agent.status;
-
-              return (
-                <div className={`agentCard ${visualStatus}`} key={agent.id}>
-                  <div className="agentIcon">
-                    {visualStatus === "complete" ? (
-                      <CheckCircle2 size={17} aria-hidden="true" />
-                    ) : visualStatus === "warning" ? (
-                      <AlertTriangle size={17} aria-hidden="true" />
-                    ) : visualStatus === "active" ? (
-                      <CircleDot size={17} aria-hidden="true" />
-                    ) : (
-                      <Workflow size={17} aria-hidden="true" />
-                    )}
-                  </div>
-                  <div>
-                    <strong>{agent.name}</strong>
-                    <span>{agent.purpose}</span>
-                    <div className="phaseChips">
-                      {agent.steps.map((step, index) => (
-                        <small className={index < completedSteps ? "phaseDone" : ""} key={step.phase}>
-                          {step.phase}
-                        </small>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            {!analysis && (
-              <div className="agentPlaceholder">
-                <Stethoscope size={20} aria-hidden="true" />
-                <span>Run the packet to stream source-grounded audit events.</span>
-              </div>
-            )}
-          </div>
-
-          <div className="gapBox">
-            <div className="sectionTitle">
-              <AlertTriangle size={16} aria-hidden="true" />
-              Documentation Gaps
-            </div>
-            {analysis ? (
-              analysis.gaps.map((gap) => (
-                <div className="gapRow" key={gap.item}>
-                  <span className={severityClass(gap.severity)}>{gap.severity}</span>
-                  <strong>{gap.item}</strong>
-                  <p>{gap.action}</p>
-                  <small>{gap.owner}</small>
-                </div>
-              ))
-            ) : (
-              <p className="mutedCopy">No packet has been analyzed yet.</p>
-            )}
-            {analysis && criticalGaps > 0 && (
-              <button className="resolveButton" type="button" onClick={attachMedicationHistory} disabled={status === "running"}>
-                <Zap size={16} aria-hidden="true" />
-                Attach Medication History
-              </button>
-            )}
-          </div>
-
-          <div className="observabilityGrid">
-            <div>
-              <Gauge size={16} aria-hidden="true" />
-              <span>Runtime</span>
-              <strong>{runtime ? `${runtime.runtime.toFixed(1)}s` : "0.0s"}</strong>
-            </div>
-            <div>
-              <ClipboardList size={16} aria-hidden="true" />
-              <span>Tokens</span>
-              <strong>{runtime ? runtime.tokens.toLocaleString() : "0"}</strong>
-            </div>
-            <div>
-              <Sparkles size={16} aria-hidden="true" />
-              <span>Cost</span>
-              <strong>{runtime ? `$${runtime.cost.toFixed(3)}` : "$0.000"}</strong>
-            </div>
-            <div>
-              <ShieldCheck size={16} aria-hidden="true" />
-              <span>Confidence</span>
-              <strong>{runtime ? confidenceLabel(runtime.confidence) : "0%"}</strong>
-            </div>
-          </div>
-        </aside>
+      <section className="landingSection chartSection" id="time-brain">
+        <div className="sectionCopy">
+          <span className="eyebrow">Time Is Brain</span>
+          <h2>Administrative minutes have biological stakes.</h2>
+          <p>
+            The demo uses the accepted time-is-brain hook: about 1.9 million
+            neurons per untreated ischemic stroke minute. BrainAuth reports
+            “neurons at risk avoided,” not guaranteed neurons saved.
+          </p>
+        </div>
+        <div className="chartCard">
+          <ResponsiveContainer width="100%" height={290}>
+            <LineChart data={neuronData} margin={{ top: 16, right: 20, bottom: 8, left: 0 }}>
+              <CartesianGrid stroke="#E2E8F0" vertical={false} />
+              <XAxis
+                dataKey="minutes"
+                tickLine={false}
+                axisLine={false}
+                tick={{ fill: "#64748B", fontSize: 12 }}
+                label={{ value: "Minutes delayed", position: "insideBottom", offset: -4, fill: "#475569" }}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tick={{ fill: "#64748B", fontSize: 12 }}
+                tickFormatter={formatNeurons}
+              />
+              <Tooltip
+                formatter={(value) => [formatNeurons(Number(value)), "Neurons at risk"]}
+                labelFormatter={(label) => `${label} minutes`}
+              />
+              <Line
+                type="monotone"
+                dataKey="neurons"
+                stroke="#2563EB"
+                strokeWidth={3}
+                dot={{ r: 4, fill: "#2563EB", strokeWidth: 0 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </section>
+
+      <section className="landingSection" id="workflow">
+        <div className="sectionCopy">
+          <span className="eyebrow">Workflow</span>
+          <h2>From paperwork chase to source-grounded packet draft.</h2>
+          <p>
+            BrainAuth does not make treatment decisions. It prepares evidence,
+            flags missing documentation, and gives clinicians a reviewable packet.
+          </p>
+        </div>
+        <div className="workflowCompare">
+          <WorkflowColumn title="Current workflow" items={beforeWorkflow} tone="warning" />
+          <WorkflowColumn title="BrainAuth workflow" items={afterWorkflow} tone="success" />
+        </div>
+      </section>
+
+      <section className="landingSection architectureSection" id="architecture">
+        <div className="sectionCopy">
+          <span className="eyebrow">Agentic System</span>
+          <h2>Observable agents, source evidence, and packet output.</h2>
+          <p>
+            Each agent emits tool calls, evidence found, confidence, verification
+            status, and human-review flags. Hidden chain-of-thought is never shown.
+          </p>
+        </div>
+        <div className="agentArchitecture">
+          {agents.map(([name, description], index) => (
+            <article className="agentArchitectureCard" key={name}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{name}</strong>
+              <p>{description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="landingSection marketSection">
+        <div className="marketCard">
+          <Route size={22} aria-hidden="true" />
+          <h2>Beachhead: acute stroke documentation.</h2>
+          <p>
+            Start with transfer and payer-submission packet drafts. Expand into
+            prior-auth automation, transfer coordination, and stroke network operations.
+          </p>
+        </div>
+        <div className="marketCard">
+          <Cloud size={22} aria-hidden="true" />
+          <h2>Azure-ready document parsing.</h2>
+          <p>
+            Azure AI Document Intelligence can parse EHR PDFs, CTA reports, and
+            payer policies when credentials are configured. Local demo fallback stays reliable.
+          </p>
+        </div>
+        <div className="marketCard">
+          <Database size={22} aria-hidden="true" />
+          <h2>Source-grounded by design.</h2>
+          <p>
+            Facts without source quotes become gaps, conflicts, or human-review items.
+            Unsupported packet claims are blocked.
+          </p>
+        </div>
+      </section>
+
+      <footer className="landingFooter">
+        <div>
+          <strong>BrainAuth AI</strong>
+          <span>Synthetic demo only. Not clinical decision support.</span>
+        </div>
+        <Link href="/demo">
+          Launch Live MVP
+          <ArrowRight size={15} aria-hidden="true" />
+        </Link>
+      </footer>
     </main>
+  );
+}
+
+function WorkflowColumn({
+  title,
+  items,
+  tone
+}: {
+  title: string;
+  items: string[];
+  tone: "warning" | "success";
+}) {
+  const Icon = tone === "warning" ? Timer : SearchCheck;
+  return (
+    <article className={`workflowColumn ${tone}`}>
+      <div className="workflowTitle">
+        <Icon size={18} aria-hidden="true" />
+        <h3>{title}</h3>
+      </div>
+      {items.map((item) => (
+        <div className="workflowStep" key={item}>
+          {tone === "warning" ? (
+            <FileText size={15} aria-hidden="true" />
+          ) : (
+            <ClipboardCheck size={15} aria-hidden="true" />
+          )}
+          <span>{item}</span>
+        </div>
+      ))}
+    </article>
   );
 }
